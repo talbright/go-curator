@@ -10,10 +10,15 @@ type EventType uint64
 //Limited to 64 event types
 const (
 	AnyEvent EventType = 1 << iota
+	ChildrenWatchLoadedEvent
+	ChildrenWatchChangedEvent
+	ChildrenWatchStoppedEvent
 )
 
 var eventTypeToName = map[EventType]string{
-	AnyEvent: "AnyEvent",
+	AnyEvent:                  "AnyEvent",
+	ChildrenWatchLoadedEvent:  "ChildrenWatchLoadedEvent",
+	ChildrenWatchChangedEvent: "ChildrenWatchChangedEvent",
 }
 
 func (e EventType) String() (name string) {
@@ -29,6 +34,7 @@ type Event struct {
 	Node   *Znode
 	Source *zk.Event
 	Error  error
+	Data   map[string]interface{}
 }
 
 //NewEvent creates a new event for the most common cases
@@ -37,5 +43,6 @@ func NewEvent(event EventType, node *Znode, err error) *Event {
 		Type:  event,
 		Node:  node,
 		Error: err,
+		Data:  make(map[string]interface{}),
 	}
 }
