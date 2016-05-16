@@ -1,6 +1,12 @@
-hash: 663e418bef82ff1cd407404d6b784ae3d7ed7f67a59ec623ec8ee83c8b510d0b
-updated: 2016-05-13T23:46:24.530047511-04:00
+hash: 41afaffae15367d07a12b81e72b899d3cf49dfa286db200b2971fcadc2eeae1e
+updated: 2016-05-16T12:53:54.274451555-04:00
 imports:
+- name: github.com/cenkalti/backoff
+  version: c29158af31815ccc31ca29c86c121bc39e00d3d8
+- name: github.com/davecgh/go-spew
+  version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
+  subpackages:
+  - spew
 - name: github.com/onsi/ginkgo
   version: 5437a97bf824dec14e58d68c56ee36e772670c2e
   subpackages:
