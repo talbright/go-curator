@@ -39,9 +39,12 @@ var _ = Describe("Znode", func() {
 			node.Stat = &zk.Stat{Version: 123}
 			node.Data = []byte("abc")
 			znodeCopy := node.DeepCopy()
-			Expect(znodeCopy.Stat == node.Stat).ShouldNot(BeTrue())
+			Expect(znodeCopy.Name).Should(Equal(node.Name))
+			Expect(znodeCopy.Path).Should(Equal(node.Path))
+			Expect(znodeCopy.Stat).Should(Equal(node.Stat))
 			node.Stat.Version = 99
 			Expect(znodeCopy.Stat.Version).ShouldNot(Equal(node.Stat.Version))
+			Expect(string(znodeCopy.Data[:])).Should(Equal(string(node.Data[:])))
 			node.Data[0] = 'z'
 			Expect(string(znodeCopy.Data[:])).ShouldNot(Equal(string(node.Data[:])))
 		})
