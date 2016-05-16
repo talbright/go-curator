@@ -42,3 +42,19 @@ Basename returns the leaf name of this Znode
 func (n Znode) Basename() string {
 	return path.Base(n.Path)
 }
+
+/*
+DeepCopy creates a deepcopy of n
+*/
+func (n Znode) DeepCopy() (zcopy *Znode) {
+	zcopy = NewZnode(n.Path)
+	if n.Data != nil {
+		zcopy.Data = make([]byte, len(n.Data))
+		copy(zcopy.Data, n.Data)
+	}
+	if n.Stat != nil {
+		statCopy := *n.Stat
+		zcopy.Stat = &statCopy
+	}
+	return
+}
