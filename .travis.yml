@@ -15,12 +15,9 @@ matrix:
   allow_failures:
     - go: tip
 before_install:
-  - ./travis.sh -install
+  - ./script/install_zk.sh -travis
+  - ./script/install_glide.sh -travis
+  - make tools
 script:
-  - CGOENABLED=1 ginkgo -v -r -cover $(glide novendor)
-  - fgt go vet $(glide novendor)
-  - fgt golint $(glide novendor)
-  - rm -rf ./vendor
-  - fgt gofmt -l .
-  - goveralls -service=travis-ci -repotoken $COVERALLS_TOKEN -coverprofile=go-curator.coverprofile
-
+  - ./zk/bin/zkServer.sh start ./zk/conf/zoo.cfg 1> /dev/null
+  - make test
