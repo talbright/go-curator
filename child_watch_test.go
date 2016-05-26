@@ -13,7 +13,7 @@ import (
 
 func AddItemToChildWatch(item string, root string, client *Client) {
 	path := path.Join(root, item)
-	if err := client.CreatePath(path, ZkNoData, ZkWorldACL); err != nil {
+	if err := client.CreatePath(path, zk.NoData, zk.WorldACLPermAll); err != nil {
 		panic(fmt.Sprintf("unable to create zk path %s", path))
 	}
 }
@@ -30,13 +30,13 @@ var _ = Describe("ChildWatch", func() {
 	var watchListPath string
 	BeforeEach(func() {
 		watchListPath = fmt.Sprintf("/test/%s_watchlist", createUUID())
-		if err := client.CreatePath(watchListPath, ZkNoData, ZkWorldACL); err != nil {
+		if err := client.CreatePath(watchListPath, zk.NoData, zk.WorldACLPermAll); err != nil {
 			panic(fmt.Sprintf("unable to create zk path %s", watchListPath))
 		}
 		items := []string{"a", "b", "c", "d"}
 		for _, v := range items {
 			child := fmt.Sprintf("%s/%s", watchListPath, v)
-			if err := client.CreatePath(child, ZkNoData, ZkWorldACL); err != nil {
+			if err := client.CreatePath(child, zk.NoData, zk.WorldACLPermAll); err != nil {
 				panic(fmt.Sprintf("unable to create zk path %s", watchListPath))
 			}
 		}
@@ -154,7 +154,7 @@ var _ = Describe("ChildWatch", func() {
 		})
 		It("should be an error event when path to children disappears", func() {
 			watchListPath = fmt.Sprintf("/test/%s_watchlist", createUUID())
-			if err := client.CreatePath(watchListPath, ZkNoData, ZkWorldACL); err != nil {
+			if err := client.CreatePath(watchListPath, zk.NoData, zk.WorldACLPermAll); err != nil {
 				panic(fmt.Sprintf("unable to create zk path %s", watchListPath))
 			}
 			wl := NewChildWatch(client, watchListPath)
