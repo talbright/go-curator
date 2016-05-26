@@ -1,6 +1,7 @@
 package: github.com/talbright/go-curator
 import:
 - package: github.com/talbright/go-zookeeper
+  version: ~0.1.0
   subpackages:
   - zk
 - package: github.com/onsi/ginkgo
