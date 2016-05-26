@@ -20,4 +20,4 @@ before_install:
   - make tools
 script:
   - ./zk/bin/zkServer.sh start ./zk/conf/zoo.cfg 1> /dev/null
-  - make test
+  - make test-ci

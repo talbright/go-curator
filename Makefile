@@ -17,9 +17,12 @@ lint:
 fmt:
 	fgt gofmt -l .
 
-test: validate glide-install
+test-ci: validate glide-install
 	go test -v -race -coverprofile=profile.cov .
 	go tool cover -html=profile.cov -o coverage.html
+
+test:
+	go test -v -race .
 
 tools:
 	go get -u -v $(GOTOOLS)

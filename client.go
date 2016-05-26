@@ -3,21 +3,18 @@ package curator
 import (
 	"errors"
 	"fmt"
+	_ "github.com/davecgh/go-spew/spew"
 	"github.com/talbright/go-zookeeper/zk"
 	"strings"
 	"time"
 )
 
-//TODO create default logger and assign (logrus)
-// func init() {
-// 	zk.DefaultLogger = ??
-// }
+//NullLogger can be used to silence output from the client connection. Only
+//recommended for tests.
+type NullLogger struct{}
 
-//ZkNoData is a shortcut to representing "no data" when making common client calls
-var ZkNoData = []byte{0}
-
-//ZkWorldACL is a shortcut to representing zk.Permall when making common client calls
-var ZkWorldACL = zk.WorldACL(zk.PermAll)
+//Printf is the only method that is part of the connection logger interface
+func (NullLogger) Printf(format string, a ...interface{}) {}
 
 //ErrConnectionTimedOut occurs when initial connection attempt to zk fails
 var ErrConnectionTimedOut = errors.New("connection to zookeeper timed out")
@@ -51,41 +48,33 @@ func NewClient() *Client {
 /*
 Connect creates a connection to zookeeper for the client
 */
-func (c *Client) Connect(servers []string, sessionTimeout time.Duration) (err error) {
-	c.Conn, c.EventChannel, err = zk.Connect(servers, sessionTimeout)
-	return err
-}
-
-/*
-ConnectWithSettings creates a connection to zookeeper for the client. If
-WaitForSession is set to true, the caller will be blocked until the client has
-established a session to Zookeeper.
-*/
-func (c *Client) ConnectWithSettings(settings *ZkConnectionSettings) (err error) {
-	c.Conn, c.EventChannel, err = zk.Connect(settings.Servers, settings.SessionTimeout)
+func (c *Client) Connect(settings *Settings, options ...zk.ConnOption) (evnt <-chan zk.Event, err error) {
+	c.Conn, evnt, err = zk.Connect(settings.Servers, settings.SessionTimeout, options...)
+	c.EventChannel = evnt
 	if settings.WaitForSession && err == nil {
 		timeout := make(chan bool, 1)
-		if settings.ConnectionTimeout > 0 {
+		if settings.WaitForSessionTimeout > 0 {
 			go func() {
-				time.Sleep(settings.ConnectionTimeout)
+				time.Sleep(settings.WaitForSessionTimeout)
 				timeout <- true
 			}()
 		}
 		for {
 			select {
 			case <-timeout:
-				return ErrConnectionTimedOut
+				err = ErrConnectionTimedOut
+				return
 			case event := <-c.EventChannel:
 				if event.Type == zk.EventSession {
 					switch event.State {
 					case zk.StateHasSession:
-						return nil
+						return
 					}
 				}
 			}
 		}
 	}
-	return err
+	return
 }
 
 /*

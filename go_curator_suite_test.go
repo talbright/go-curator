@@ -37,7 +37,7 @@ func zkCollectEvents(count int, evntChn <-chan zk.Event) []zk.Event {
 	var event zk.Event
 	events := make([]zk.Event, 0)
 	for i := 0; i < count; i++ {
-		Eventually(evntChn).Should(Receive(&event))
+		EventuallyWithOffset(1, evntChn).Should(Receive(&event))
 		events = append(events, event)
 	}
 	return events
@@ -48,7 +48,7 @@ Create paths (without children) in zk.
 */
 func zkCreatePaths(client *Client, paths ...string) {
 	for _, path := range paths {
-		if err := client.CreatePath(path, ZkNoData, ZkWorldACL); err != nil {
+		if err := client.CreatePath(path, zk.NoData, zk.WorldACLPermAll); err != nil {
 			panic(fmt.Sprintf("unable to create zk path: \"%s\"", path))
 		}
 	}
@@ -70,12 +70,13 @@ Create client connection to zk with timeout.
 */
 func zkConnect() (client *Client) {
 	client = NewClient()
-	if err := client.ConnectWithSettings(&ZkConnectionSettings{
-		Servers:           zkHosts,
-		SessionTimeout:    zkSessionTimeout,
-		ConnectionTimeout: zkConnectionTimeout,
-		WaitForSession:    true,
-	}); err != nil {
+	settings := &Settings{
+		Servers:               zkHosts,
+		SessionTimeout:        zkSessionTimeout,
+		WaitForSessionTimeout: zkConnectionTimeout,
+		WaitForSession:        true,
+	}
+	if _, err := client.Connect(settings, zk.WithLogger(&NullLogger{})); err != nil {
 		panic(fmt.Sprintf("Unable to connect to zk: %s", err))
 	}
 	return client
