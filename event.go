@@ -10,6 +10,7 @@ type EventType uint64
 //Limited to 64 event types
 const (
 	AnyEvent EventType = 1 << iota
+	ConnectionEvent
 	ChildrenWatchLoadedEvent
 	ChildrenWatchChangedEvent
 	ChildrenWatchStoppedEvent
@@ -17,6 +18,7 @@ const (
 
 var eventTypeToName = map[EventType]string{
 	AnyEvent:                  "AnyEvent",
+	ConnectionEvent:           "ConnectionEvent",
 	ChildrenWatchLoadedEvent:  "ChildrenWatchLoadedEvent",
 	ChildrenWatchChangedEvent: "ChildrenWatchChangedEvent",
 }

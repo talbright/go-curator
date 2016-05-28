@@ -22,40 +22,26 @@ var ErrConnectionTimedOut = errors.New("connection to zookeeper timed out")
 //ErrInvalidPath occurs when the provided path in zk is malformed
 var ErrInvalidPath = errors.New("provided path is invalid")
 
-//ZkConnectionSettings provide connection options for zk
-type ZkConnectionSettings struct {
-	Servers           []string
-	SessionTimeout    time.Duration
-	ConnectionTimeout time.Duration
-	WaitForSession    bool
-}
-
-/*
-Client connects to and interacts with zk.
-*/
+//Client connects to and interacts with zk.
 type Client struct {
 	*zk.Conn
 	EventChannel <-chan zk.Event
 }
 
-/*
-NewClient creates a client that can interact with zk
-*/
+//NewClient creates a client that can interact with zk
 func NewClient() *Client {
 	return &Client{}
 }
 
-/*
-Connect creates a connection to zookeeper for the client
-*/
+//Connect creates a connection to zookeeper for the client
 func (c *Client) Connect(settings *Settings, options ...zk.ConnOption) (evnt <-chan zk.Event, err error) {
-	c.Conn, evnt, err = zk.Connect(settings.Servers, settings.SessionTimeout, options...)
+	c.Conn, evnt, err = zk.Connect(settings.ZkServers, settings.ZkSessionTimeout, options...)
 	c.EventChannel = evnt
-	if settings.WaitForSession && err == nil {
+	if settings.ZkWaitForSession && err == nil {
 		timeout := make(chan bool, 1)
-		if settings.WaitForSessionTimeout > 0 {
+		if settings.ZkWaitForSessionTimeout > 0 {
 			go func() {
-				time.Sleep(settings.WaitForSessionTimeout)
+				time.Sleep(settings.ZkWaitForSessionTimeout)
 				timeout <- true
 			}()
 		}

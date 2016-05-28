@@ -21,8 +21,8 @@ var _ = Describe("Client", func() {
 		It("should connect to server", func() {
 			client = NewClient()
 			settings := &Settings{
-				Servers:        zkHosts,
-				SessionTimeout: zkSessionTimeout,
+				ZkServers:        zkHosts,
+				ZkSessionTimeout: zkSessionTimeout,
 			}
 			_, err := client.Connect(settings, zk.WithLogger(&NullLogger{}))
 			Expect(err).Should(BeNil())
@@ -34,10 +34,10 @@ var _ = Describe("Client", func() {
 		It("should connect to server and wait for session", func() {
 			client = NewClient()
 			settings := &Settings{
-				Servers:               []string{"128.0.0.1:2222"},
-				SessionTimeout:        zkSessionTimeout,
-				WaitForSessionTimeout: 5 * time.Second,
-				WaitForSession:        true,
+				ZkServers:               []string{"128.0.0.1:2222"},
+				ZkSessionTimeout:        zkSessionTimeout,
+				ZkWaitForSessionTimeout: 5 * time.Second,
+				ZkWaitForSession:        true,
 			}
 			_, err := client.Connect(settings, zk.WithLogger(&NullLogger{}))
 			Expect(err).Should(Equal(ErrConnectionTimedOut))
