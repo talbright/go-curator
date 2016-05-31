@@ -71,10 +71,10 @@ Create client connection to zk with timeout.
 func zkConnect() (client *Client) {
 	client = NewClient()
 	settings := &Settings{
-		Servers:               zkHosts,
-		SessionTimeout:        zkSessionTimeout,
-		WaitForSessionTimeout: zkConnectionTimeout,
-		WaitForSession:        true,
+		ZkServers:               zkHosts,
+		ZkSessionTimeout:        zkSessionTimeout,
+		ZkWaitForSessionTimeout: zkConnectionTimeout,
+		ZkWaitForSession:        true,
 	}
 	if _, err := client.Connect(settings, zk.WithLogger(&NullLogger{})); err != nil {
 		panic(fmt.Sprintf("Unable to connect to zk: %s", err))

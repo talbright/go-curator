@@ -8,9 +8,6 @@ import (
 
 /*
 Znode is an in memory only representation of a Zookeeper node.
-
-The current implementaiton does not provide any synchronization primitives or
-CRUD operations.
 */
 type Znode struct {
 	Name string

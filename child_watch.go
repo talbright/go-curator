@@ -176,6 +176,7 @@ func (w *ChildWatch) getChildrenAndWatch(event EventType) (err error) {
 func (w *ChildWatch) emitEvent(eventType EventType, adds map[string]Znode, removals map[string]Znode, err error) {
 	event := NewEvent(eventType, nil, err)
 	event.Data["added"] = adds
+	event.Data["path"] = w.Path
 	event.Data["removed"] = removals
 	w.evntChn <- *event
 }

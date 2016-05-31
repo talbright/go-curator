@@ -21,12 +21,12 @@ var _ = Describe("Client", func() {
 		It("should connect to server", func() {
 			client = NewClient()
 			settings := &Settings{
-				Servers:        zkHosts,
-				SessionTimeout: zkSessionTimeout,
+				ZkServers:        zkHosts,
+				ZkSessionTimeout: zkSessionTimeout,
 			}
-			_, err := client.Connect(settings, zk.WithLogger(&NullLogger{}))
+			chn, err := client.Connect(settings, zk.WithLogger(&NullLogger{}))
 			Expect(err).Should(BeNil())
-			events := zkCollectEvents(3, client.EventChannel)
+			events := zkCollectEvents(3, chn)
 			Expect(events[0]).Should(MatchEvent(zk.EventSession, zk.StateConnecting))
 			Expect(events[1]).Should(MatchEvent(zk.EventSession, zk.StateConnected))
 			Expect(events[2]).Should(MatchEvent(zk.EventSession, zk.StateHasSession))
@@ -34,10 +34,10 @@ var _ = Describe("Client", func() {
 		It("should connect to server and wait for session", func() {
 			client = NewClient()
 			settings := &Settings{
-				Servers:               []string{"128.0.0.1:2222"},
-				SessionTimeout:        zkSessionTimeout,
-				WaitForSessionTimeout: 5 * time.Second,
-				WaitForSession:        true,
+				ZkServers:               []string{"128.0.0.1:2222"},
+				ZkSessionTimeout:        zkSessionTimeout,
+				ZkWaitForSessionTimeout: 5 * time.Second,
+				ZkWaitForSession:        true,
 			}
 			_, err := client.Connect(settings, zk.WithLogger(&NullLogger{}))
 			Expect(err).Should(Equal(ErrConnectionTimedOut))
