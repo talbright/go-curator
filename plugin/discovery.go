@@ -126,6 +126,11 @@ func (p *Discovery) loop() {
 		select {
 		case event := <-p.eventChn:
 			if p.rootWatch == nil && IsHasSessionEvent(event) {
+
+				if err := p.client.CreatePath(p.memberPath, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
+					panic(err)
+				}
+
 				p.rootWatch = NewChildWatch(p.client, p.memberPath)
 				if rootWatchChn, err = p.rootWatch.WatchChildren(); err != nil {
 					panic(err)

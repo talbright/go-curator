@@ -89,7 +89,7 @@ func (p *Member) register(recoveryMode bool) {
 
 	memberLockRoot := path.Join(p.basePath, p.ID, "lock")
 
-	if err := p.client.CreatePath(memberLockRoot, zk.NoData, zk.WorldACLPermAll); err != nil {
+	if err := p.client.CreatePath(memberLockRoot, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
 		panic(err)
 	}
 
