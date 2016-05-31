@@ -25,7 +25,6 @@ var ErrInvalidPath = errors.New("provided path is invalid")
 //Client connects to and interacts with zk.
 type Client struct {
 	*zk.Conn
-	EventChannel <-chan zk.Event
 }
 
 //NewClient creates a client that can interact with zk
@@ -36,7 +35,6 @@ func NewClient() *Client {
 //Connect creates a connection to zookeeper for the client
 func (c *Client) Connect(settings *Settings, options ...zk.ConnOption) (evnt <-chan zk.Event, err error) {
 	c.Conn, evnt, err = zk.Connect(settings.ZkServers, settings.ZkSessionTimeout, options...)
-	c.EventChannel = evnt
 	if settings.ZkWaitForSession && err == nil {
 		timeout := make(chan bool, 1)
 		if settings.ZkWaitForSessionTimeout > 0 {
@@ -50,7 +48,7 @@ func (c *Client) Connect(settings *Settings, options ...zk.ConnOption) (evnt <-c
 			case <-timeout:
 				err = ErrConnectionTimedOut
 				return
-			case event := <-c.EventChannel:
+			case event := <-evnt:
 				if event.Type == zk.EventSession {
 					switch event.State {
 					case zk.StateHasSession:

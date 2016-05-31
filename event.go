@@ -14,6 +14,13 @@ const (
 	ChildrenWatchLoadedEvent
 	ChildrenWatchChangedEvent
 	ChildrenWatchStoppedEvent
+	LeaderEventElected
+	LeaderEventCandidate
+	LeaderEventResigned
+	MemberEventRegistered
+	MemberEventUnregistered
+	DiscoveryEventActive
+	DiscoveryEventInactive
 )
 
 var eventTypeToName = map[EventType]string{
@@ -21,6 +28,13 @@ var eventTypeToName = map[EventType]string{
 	ConnectionEvent:           "ConnectionEvent",
 	ChildrenWatchLoadedEvent:  "ChildrenWatchLoadedEvent",
 	ChildrenWatchChangedEvent: "ChildrenWatchChangedEvent",
+	LeaderEventElected:        "LeaderEventElected",
+	LeaderEventCandidate:      "LeaderEventCandidate",
+	LeaderEventResigned:       "LeaderEventResigned",
+	MemberEventRegistered:     "MemberEventRegistered",
+	MemberEventUnregistered:   "MemberEventUnregistered",
+	DiscoveryEventActive:      "DiscoveryEventActive",
+	DiscoveryEventInactive:    "DiscoveryEventInactive",
 }
 
 func (e EventType) String() (name string) {
@@ -47,4 +61,28 @@ func NewEvent(event EventType, node *Znode, err error) *Event {
 		Error: err,
 		Data:  make(map[string]interface{}),
 	}
+}
+
+//IsHasSessionEvent is a shortcut for determing if the event is from zk
+//and that event state is zk.StateHasSession
+func IsHasSessionEvent(event Event) (session bool) {
+	if event.Type == ConnectionEvent {
+		if event.Source != nil && event.Source.State == zk.StateHasSession {
+			session = true
+		}
+	}
+	return
+}
+
+//DeepCopy makes a safe copy of the event
+func (e Event) DeepCopy() (ecopy *Event) {
+	ecopy = &e
+	if ecopy.Source != nil {
+		sourceCopy := *e.Source
+		ecopy.Source = &sourceCopy
+	}
+	if ecopy.Node != nil {
+		ecopy.Node = e.Node.DeepCopy()
+	}
+	return
 }

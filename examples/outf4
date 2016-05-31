@@ -1,0 +1,44 @@
+[MAIN] 2016/05/30 22:22:00 starting go-curator
+[ES] 2016/05/30 22:22:00 (curator.Event){Type:(curator.EventType)ConnectionEvent Node:(*curator.Znode)<nil> Source:(*zk.Event)(0xc820010700){Type:(zk.EventType)EventSession State:(zk.State)StateConnecting Path:(string) Err:(error)<nil> Server:(string)127.0.0.1:2181} Error:(error)<nil> Data:(map[string]interface {})<nil>}
+[ZK] 2016/05/30 22:22:00 Connected to 127.0.0.1:2181
+[ES] 2016/05/30 22:22:00 (curator.Event){Type:(curator.EventType)ConnectionEvent Node:(*curator.Znode)<nil> Source:(*zk.Event)(0xc8200b81c0){Type:(zk.EventType)EventSession State:(zk.State)StateConnected Path:(string) Err:(error)<nil> Server:(string)127.0.0.1:2181} Error:(error)<nil> Data:(map[string]interface {})<nil>}
+[ZK] 2016/05/30 22:22:00 Authenticated: id=95987464426815520, timeout=20000
+[ES] 2016/05/30 22:22:00 (curator.Event){Type:(curator.EventType)ConnectionEvent Node:(*curator.Znode)<nil> Source:(*zk.Event)(0xc8200b8380){Type:(zk.EventType)EventSession State:(zk.State)StateHasSession Path:(string) Err:(error)<nil> Server:(string)127.0.0.1:2181} Error:(error)<nil> Data:(map[string]interface {})<nil>}
+[ES] 2016/05/30 22:22:00 (curator.Event){Type:(curator.EventType)LeaderEventCandidate Node:(*curator.Znode)<nil> Source:(*zk.Event)<nil> Error:(error)<nil> Data:(map[string]interface {})<nil>}
+process root watch change with event
+(curator.Event) {
+ Type: (curator.EventType) ChildrenWatchLoadedEvent,
+ Node: (*curator.Znode)(<nil>),
+ Source: (*zk.Event)(<nil>),
+ Error: (error) <nil>,
+ Data: (map[string]interface {}) (len=3) {
+  (string) (len=5) "added": (map[string]curator.Znode) (len=2) {
+   (string) (len=4) "app4": (curator.Znode) {
+    Name: (string) (len=4) "app4",
+    Path: (string) (len=30) "/services/curator/members/app4",
+    Data: ([]uint8) <nil>,
+    Stat: (*zk.Stat)(<nil>)
+   },
+   (string) (len=4) "app3": (curator.Znode) {
+    Name: (string) (len=4) "app3",
+    Path: (string) (len=30) "/services/curator/members/app3",
+    Data: ([]uint8) <nil>,
+    Stat: (*zk.Stat)(<nil>)
+   }
+  },
+  (string) (len=4) "path": (string) (len=25) "/services/curator/members",
+  (string) (len=7) "removed": (map[string]curator.Znode) {
+  }
+ }
+}
+starting watch for /services/curator/members/app4/lock
+starting watch for /services/curator/members/app3/lock
+[ES] 2016/05/30 22:22:00 (curator.Event){Type:(curator.EventType)DiscoveryEventActive Node:(*curator.Znode)(0xc8204282c0){Name:(string)_c_f282ca18345a5e55da6f686e465e39e0-lock-0000000031 Path:(string)/services/curator/members/app4/lock/_c_f282ca18345a5e55da6f686e465e39e0-lock-0000000031 Data:([]uint8)<nil> Stat:(*zk.Stat)<nil>} Source:(*zk.Event)<nil> Error:(error)<nil> Data:(map[string]interface {})map[path:(string)/services/curator/members/app4/lock]}
+[ES] 2016/05/30 22:22:00 (curator.Event){Type:(curator.EventType)DiscoveryEventInactive Node:(*curator.Znode)<nil> Source:(*zk.Event)<nil> Error:(error)<nil> Data:(map[string]interface {})map[path:(string)/services/curator/members/app3/lock]}
+[ES] 2016/05/30 22:22:08 (curator.Event){Type:(curator.EventType)ConnectionEvent Node:(*curator.Znode)<nil> Source:(*zk.Event)(0xc8202823c0){Type:(zk.EventType)EventNodeDeleted State:(zk.State)Unknown Path:(string)/services/curator/members/app4/lock/_c_322db520a4c277a60a5e829003a5489a-lock-0000000030 Err:(error)<nil> Server:(string)} Error:(error)<nil> Data:(map[string]interface {})<nil>}
+[ES] 2016/05/30 22:22:08 (curator.Event){Type:(curator.EventType)ConnectionEvent Node:(*curator.Znode)<nil> Source:(*zk.Event)(0xc820282540){Type:(zk.EventType)EventNodeChildrenChanged State:(zk.State)Unknown Path:(string)/services/curator/members/app4/lock Err:(error)<nil> Server:(string)} Error:(error)<nil> Data:(map[string]interface {})<nil>}
+[ES] 2016/05/30 22:22:08 (curator.Event){Type:(curator.EventType)ConnectionEvent Node:(*curator.Znode)<nil> Source:(*zk.Event)(0xc8202826c0){Type:(zk.EventType)EventNodeDeleted State:(zk.State)Unknown Path:(string)/services/curator/leader/_c_3c602f4b0e1fcf6e31fffe95eae2524d-lock-0000000064 Err:(error)<nil> Server:(string)} Error:(error)<nil> Data:(map[string]interface {})<nil>}
+[ES] 2016/05/30 22:22:08 (curator.Event){Type:(curator.EventType)LeaderEventElected Node:(*curator.Znode)(0xc820282840){Name:(string)_c_e4ac60fb8a03a6b8ef8b89ea263512c2-lock-0000000065 Path:(string)/services/curator/leader/_c_e4ac60fb8a03a6b8ef8b89ea263512c2-lock-0000000065 Data:([]uint8)<nil> Stat:(*zk.Stat)<nil>} Source:(*zk.Event)<nil> Error:(error)<nil> Data:(map[string]interface {})<nil>}
+[ES] 2016/05/30 22:22:08 (curator.Event){Type:(curator.EventType)MemberEventRegistered Node:(*curator.Znode)(0xc820428400){Name:(string)_c_f282ca18345a5e55da6f686e465e39e0-lock-0000000031 Path:(string)/services/curator/members/app4/lock/_c_f282ca18345a5e55da6f686e465e39e0-lock-0000000031 Data:([]uint8)<nil> Stat:(*zk.Stat)<nil>} Source:(*zk.Event)<nil> Error:(error)<nil> Data:(map[string]interface {})<nil>}
+[ES] 2016/05/30 22:23:23 (curator.Event){Type:(curator.EventType)ConnectionEvent Node:(*curator.Znode)<nil> Source:(*zk.Event)(0xc820282980){Type:(zk.EventType)EventNodeChildrenChanged State:(zk.State)Unknown Path:(string)/services/curator/members/app3/lock Err:(error)<nil> Server:(string)} Error:(error)<nil> Data:(map[string]interface {})<nil>}
+[ES] 2016/05/30 22:23:23 (curator.Event){Type:(curator.EventType)DiscoveryEventActive Node:(*curator.Znode)(0xc8200b8980){Name:(string)_c_aede8579a82ea8aa148305a9610a1805-lock-0000000022 Path:(string)/services/curator/members/app3/lock/_c_aede8579a82ea8aa148305a9610a1805-lock-0000000022 Data:([]uint8)<nil> Stat:(*zk.Stat)<nil>} Source:(*zk.Event)<nil> Error:(error)<nil> Data:(map[string]interface {})map[path:(string)/services/curator/members/app3/lock]}

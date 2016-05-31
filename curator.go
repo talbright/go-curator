@@ -14,21 +14,22 @@ type Settings struct {
 	ZkSessionTimeout        time.Duration
 	ZkWaitForSessionTimeout time.Duration
 	ZkWaitForSession        bool
+	RootPath                string
 }
 
 type Curator struct {
-	client   *Client
-	settings *Settings
+	Client   *Client
+	Settings *Settings
 	plugins  []Plugin
-	mutex    *sync.Mutex
+	mutex    *sync.RWMutex
 	connChn  <-chan zk.Event
 }
 
 func NewCurator(client *Client, settings *Settings, plugins []Plugin) *Curator {
 	curator := &Curator{
-		client:   client,
-		settings: settings,
-		mutex:    &sync.Mutex{},
+		Client:   client,
+		Settings: settings,
+		mutex:    &sync.RWMutex{},
 		plugins:  make([]Plugin, 0),
 	}
 	for _, c := range plugins {
@@ -41,10 +42,12 @@ func (c *Curator) LoadPlugin(plugin Plugin) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.plugins = append(c.plugins, plugin)
-	plugin.OnLoad(c, c.client)
+	plugin.OnLoad(c)
 }
 
 func (c *Curator) UnloadPlugin(plugin Plugin) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	index := -1
 	for i, p := range c.plugins {
 		if p == plugin {
@@ -66,12 +69,27 @@ func (c *Curator) ClearPlugins() {
 	c.plugins = make([]Plugin, 0)
 }
 
-func (c *Curator) AllPlugins() []Plugin {
+func (c *Curator) AllPlugins() (plugins []Plugin) {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+	plugins = make([]Plugin, 0)
+	for _, v := range c.plugins {
+		plugins = append(plugins, v)
+	}
 	return c.plugins
 }
 
+func (c *Curator) FindPlugin(f func(int, Plugin) bool) (index int, plugin Plugin) {
+	for i, v := range c.AllPlugins() {
+		if f(i, v) {
+			return i, v
+		}
+	}
+	return -1, nil
+}
+
 func (c *Curator) Start() (err error) {
-	c.connChn, err = c.client.Connect(c.settings, zk.WithLogger(c.settings.ZkLogger))
+	c.connChn, err = c.Client.Connect(c.Settings, zk.WithLogger(c.Settings.ZkLogger))
 	if err == nil {
 		go c.loop()
 	}
@@ -79,18 +97,23 @@ func (c *Curator) Start() (err error) {
 }
 
 func (c *Curator) FireEvent(event Event) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	// spew.Println("preparing to fire event")
+	// spew.Dump(event)
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 	for _, plugin := range c.plugins {
 		if plugin.Accepts(event.Type) {
-			plugin.Notify(event)
+			// spew.Printf("notifying plugin %s for event...\n", plugin.Name())
+			srcCopy := *(event.DeepCopy())
+			go plugin.Notify(srcCopy)
+			// spew.Printf("plugin %s notified\n", plugin.Name())
 		}
 	}
 }
 
 func (c *Curator) loop() {
 	for event := range c.connChn {
-		srcCopy := &event
-		c.FireEvent(Event{Type: ConnectionEvent, Source: srcCopy})
+		// spew.Printf("received connection event %v/%v\n", event.Type, event.State)
+		c.FireEvent(Event{Type: ConnectionEvent, Source: &event})
 	}
 }
