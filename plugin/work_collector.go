@@ -8,7 +8,7 @@ import (
 	"github.com/talbright/go-zookeeper/zk"
 )
 
-type Worker struct {
+type WorkCollector struct {
 	ID        string
 	curator   *Curator
 	client    *Client
@@ -20,30 +20,30 @@ type Worker struct {
 	work      map[string]*Znode
 }
 
-func (p *Worker) Name() string {
-	return "Worker"
+func (p *WorkCollector) Name() string {
+	return "WorkCollector"
 }
 
-func (p *Worker) Accepts(eventType EventType) bool {
+func (p *WorkCollector) Accepts(eventType EventType) bool {
 	return ConnectionEvent&eventType != 0
 }
 
-func (p *Worker) Notify(event Event) {
+func (p *WorkCollector) Notify(event Event) {
 	p.eventChn <- event
 }
 
-func (p *Worker) OnLoad(curator *Curator) {
+func (p *WorkCollector) OnLoad(curator *Curator) {
 	p.workPath = path.Join(curator.Settings.RootPath, "members", p.ID, "work")
 	p.client = curator.Client
 	p.curator = curator
 	p.WatchForWork()
 }
 
-func (p *Worker) OnUnload() {
+func (p *WorkCollector) OnUnload() {
 	p.StopWatching()
 }
 
-func (p *Worker) WatchForWork() {
+func (p *WorkCollector) WatchForWork() {
 	p.eventChn = make(chan Event, 10)
 	p.stopChn = make(chan struct{})
 	p.mutex = &sync.RWMutex{}
@@ -51,11 +51,11 @@ func (p *Worker) WatchForWork() {
 	go p.loop()
 }
 
-func (p *Worker) StopWatching() {
+func (p *WorkCollector) StopWatching() {
 	close(p.stopChn)
 }
 
-func (p *Worker) Work() (work map[string]*Znode) {
+func (p *WorkCollector) Work() (work map[string]*Znode) {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
 	work = make(map[string]*Znode)
@@ -65,26 +65,26 @@ func (p *Worker) Work() (work map[string]*Znode) {
 	return
 }
 
-func (p *Worker) addWork(path string, node Znode) {
+func (p *WorkCollector) addWork(path string, node Znode) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	p.work[path] = &node
 }
 
-func (p *Worker) removeWork(path string) {
+func (p *WorkCollector) removeWork(path string) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	delete(p.work, path)
 }
 
-func (p *Worker) loop() {
+func (p *WorkCollector) loop() {
 	workWatchChn := make(chan Event)
 	var err error
 	for {
 		select {
 		case event := <-p.eventChn:
 			if p.workWatch == nil && IsHasSessionEvent(event) {
-				if err = p.client.CreatePath(p.workPath, zk.NoData, zk.WorldACLPermAll); err != nil {
+				if err = p.client.CreatePath(p.workPath, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
 					panic(err)
 				}
 				p.workWatch = NewChildWatch(p.client, p.workPath)
@@ -100,7 +100,7 @@ func (p *Worker) loop() {
 	}
 }
 
-func (p *Worker) processWorkWatchChangeset(event Event) {
+func (p *WorkCollector) processWorkWatchChangeset(event Event) {
 	added := make(map[string]Znode)
 	removed := make(map[string]Znode)
 	var ok bool

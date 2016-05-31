@@ -27,3 +27,4 @@ vendor
 *.sublime-project
 *.sublime-workspace
 *.coverprofile
+examples/*.log
