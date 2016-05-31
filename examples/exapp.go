@@ -35,6 +35,7 @@ func main() {
 	plugins = append(plugins, &plugin.Leader{})
 	plugins = append(plugins, &plugin.Member{ID: appId})
 	plugins = append(plugins, &plugin.Discovery{})
+	plugins = append(plugins, &plugin.Worker{ID: appId})
 	cur := curator.NewCurator(client, settings, plugins)
 	cur.Start()
 	select {}
