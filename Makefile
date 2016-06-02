@@ -8,6 +8,9 @@ GOTOOLS = \
 
 all: tools build validate
 
+build:
+	go build -a . ./plugin/...
+
 vet:
 	fgt go vet .
 
@@ -21,7 +24,7 @@ test-ci: validate glide-install
 	go test -v -race -coverprofile=profile.cov .
 	go tool cover -html=profile.cov -o coverage.html
 
-test:
+test: build
 	go test -v -race .
 
 tools:

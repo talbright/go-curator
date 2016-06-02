@@ -67,13 +67,34 @@ func NewEvent(event EventType, node *Znode, err error) *Event {
 	}
 }
 
-//IsHasSessionEvent is a shortcut for determing if the event is from zk
-//and that event state is zk.StateHasSession
-func IsHasSessionEvent(event Event) (session bool) {
-	if event.Type == ConnectionEvent {
-		if event.Source != nil && event.Source.State == zk.StateHasSession {
-			session = true
+//IsValidSessionEvent determines if the event type is a ConnectionEvent
+//and there is a valid and associated zk event of type zk.EventSession.
+func (e Event) IsValidSessionEvent() (yes bool) {
+	if e.Type == ConnectionEvent {
+		source := e.Source
+		if source != nil && source.Type == zk.EventSession {
+			yes = true
 		}
+	}
+	return
+}
+
+//IsConnectedEvent is a shortcut for determing if the event is a ConnectionEvent
+//and represents an underlying zk.StateHasSession
+func (e Event) IsConnectedEvent() (connected bool) {
+	if e.IsValidSessionEvent() && e.Source.State == zk.StateHasSession {
+		connected = true
+	}
+	return
+}
+
+//IsDisConnectedEvent is a shortcut for determing if the event is a
+//ConnectionEvent and represents anything except an underlying
+//zk.StateHasSession (which means we are not reliably connected and ready to
+//process typical zk API requests)
+func (e Event) IsDisconnectedEvent(event Event) (connected bool) {
+	if e.IsValidSessionEvent() && event.Source.State != zk.StateHasSession {
+		connected = false
 	}
 	return
 }

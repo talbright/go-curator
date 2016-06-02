@@ -76,7 +76,7 @@ func (p *Member) loop() {
 	for {
 		select {
 		case event := <-p.eventChn:
-			if IsHasSessionEvent(event) {
+			if event.IsConnectedEvent() {
 				p.register(p.zkLock != nil)
 			}
 		case <-p.stopChn:

@@ -89,7 +89,7 @@ func (p *Leader) loop() {
 	for {
 		select {
 		case event := <-p.eventChn:
-			if IsHasSessionEvent(event) {
+			if event.IsConnectedEvent() {
 				p.campaign(p.zkLock != nil)
 			}
 		case <-p.stopChn:

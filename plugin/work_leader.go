@@ -59,7 +59,7 @@ func (p *WorkLeader) loop() {
 	for {
 		select {
 		case event := <-p.eventChn:
-			if p.workWatch == nil && IsHasSessionEvent(event) {
+			if p.workWatch == nil && event.IsConnectedEvent() {
 				if err = p.client.CreatePath(p.workPath, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
 					panic(err)
 				}
