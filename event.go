@@ -92,8 +92,8 @@ func (e Event) IsConnectedEvent() (connected bool) {
 //ConnectionEvent and represents anything except an underlying
 //zk.StateHasSession (which means we are not reliably connected and ready to
 //process typical zk API requests)
-func (e Event) IsDisconnectedEvent(event Event) (connected bool) {
-	if e.IsValidSessionEvent() && event.Source.State != zk.StateHasSession {
+func (e Event) IsDisconnectedEvent() (connected bool) {
+	if e.IsValidSessionEvent() && e.Source.State != zk.StateHasSession {
 		connected = false
 	}
 	return
