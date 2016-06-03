@@ -6,6 +6,7 @@ import (
 	_ "github.com/davecgh/go-spew/spew"
 	"github.com/talbright/go-zookeeper/zk"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -25,11 +26,12 @@ var ErrInvalidPath = errors.New("provided path is invalid")
 //Client connects to and interacts with zk.
 type Client struct {
 	*zk.Conn
+	mutex *sync.RWMutex
 }
 
 //NewClient creates a client that can interact with zk
 func NewClient() *Client {
-	return &Client{}
+	return &Client{mutex: &sync.RWMutex{}}
 }
 
 //Connect creates a connection to zookeeper for the client
@@ -69,6 +71,8 @@ nodes can have children.
 The path parameter must begin with '/'
 */
 func (c *Client) CreatePath(path string, data []byte, acl []zk.ACL) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	if !strings.HasPrefix(path, "/") {
 		return ErrInvalidPath
 	}
