@@ -48,6 +48,7 @@ func (c *Client) Connect(settings *Settings, options ...zk.ConnOption) (evnt <-c
 		for {
 			select {
 			case <-timeout:
+				c.Conn.Close()
 				err = ErrConnectionTimedOut
 				return
 			case event := <-evnt:
