@@ -15,9 +15,6 @@ import (
 var _ = Describe("Client", func() {
 	Context("Connect", func() {
 		var client *Client
-		AfterEach(func() {
-			client.Close()
-		})
 		It("should connect to server", func() {
 			client = NewClient()
 			settings := &Settings{
@@ -30,6 +27,7 @@ var _ = Describe("Client", func() {
 			Expect(events[0]).Should(MatchEvent(zk.EventSession, zk.StateConnecting))
 			Expect(events[1]).Should(MatchEvent(zk.EventSession, zk.StateConnected))
 			Expect(events[2]).Should(MatchEvent(zk.EventSession, zk.StateHasSession))
+			client.Close()
 		})
 		It("should connect to server and wait for session", func() {
 			client = NewClient()
