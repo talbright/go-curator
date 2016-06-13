@@ -12,3 +12,4 @@ import:
 - package: github.com/davecgh/go-spew
   subpackages:
   - spew
+- package: github.com/rcrowley/go-metrics

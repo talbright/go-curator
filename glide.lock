@@ -1,5 +1,5 @@
-hash: de4ebcf1aad59b5e3e8ee5e920ee53f20452dad1f27bac18d16896258d9944d9
-updated: 2016-05-25T23:19:45.619193099-04:00
+hash: 146bb1aa5777cb3b7cc281d4f72c105adc80a7ab38464ea5887a2ca46280ec84
+updated: 2016-06-12T23:14:31.666478094-04:00
 imports:
 - name: github.com/cenkalti/backoff
   version: c29158af31815ccc31ca29c86c121bc39e00d3d8
@@ -13,6 +13,8 @@ imports:
   - ginkgo
 - name: github.com/onsi/gomega
   version: 815512bce8c889153a13104c9d9b2416153c1e02
+- name: github.com/rcrowley/go-metrics
+  version: eeba7bd0dd01ace6e690fa833b3f22aaec29af43
 - name: github.com/satori/go.uuid
   version: f9ab0dce87d815821e221626b772e3475a0d2749
 - name: github.com/talbright/go-zookeeper

@@ -97,23 +97,18 @@ func (c *Curator) Start() (err error) {
 }
 
 func (c *Curator) FireEvent(event Event) {
-	// spew.Println("preparing to fire event")
-	// spew.Dump(event)
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 	for _, plugin := range c.plugins {
 		if plugin.Accepts(event.Type) {
-			// spew.Printf("notifying plugin %s for event...\n", plugin.Name())
 			srcCopy := *(event.DeepCopy())
 			go plugin.Notify(srcCopy)
-			// spew.Printf("plugin %s notified\n", plugin.Name())
 		}
 	}
 }
 
 func (c *Curator) loop() {
 	for event := range c.connChn {
-		// spew.Printf("received connection event %v/%v\n", event.Type, event.State)
 		c.FireEvent(Event{Type: ConnectionEvent, Source: &event})
 	}
 }

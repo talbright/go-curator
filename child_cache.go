@@ -11,9 +11,9 @@ import (
 var ErrNodeNotInCache = errors.New("node not in cache")
 
 /*
-Provides a cached list, whose nodes are the children of a single path within
-zookeeper. In other words, all the items in the cache would share the same
-parent.
+ChildCache provides a cached list, whose nodes are the children of a single
+path within zookeeper. In other words, all the items in the cache would share
+the same parent.
 
 For example, supposing a zookeeper structure as follows:
 
@@ -31,7 +31,7 @@ unix, the children of a znode have unique names.
 
 Some notes:
 
-* Does not obeserve state changes in zk
+* Does not observe state changes in zk
 * Nodes are persistant, not ephemeral
 * Thread safe
 * Does not require or use channels
