@@ -23,6 +23,9 @@ const (
 	DiscoveryEventInactive
 	WorkerEventChangeset
 	WorkerEventLoaded
+	WorkLeaderChangeset
+	WorkLeaderActive
+	WorkLeaderInactive
 )
 
 var eventTypeToName = map[EventType]string{
@@ -39,6 +42,9 @@ var eventTypeToName = map[EventType]string{
 	DiscoveryEventInactive:    "DiscoveryEventInactive",
 	WorkerEventChangeset:      "WorkerEventChangeset",
 	WorkerEventLoaded:         "WorkerEventLoaded",
+	WorkLeaderChangeset:       "WorkLeaderChangeset",
+	WorkLeaderActive:          "WorkLeaderActive",
+	WorkLeaderInactive:        "WorkLeaderInactive",
 }
 
 func (e EventType) String() (name string) {

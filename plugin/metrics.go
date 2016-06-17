@@ -39,6 +39,12 @@ func (p *Metrics) Notify(event Event) {
 		fallthrough
 	case DiscoveryEventInactive:
 		p.metricsForDiscovery(event)
+	case WorkLeaderChangeset:
+		fallthrough
+	case WorkLeaderActive:
+		fallthrough
+	case WorkLeaderInactive:
+		p.metricsForWorkLeader(event)
 	}
 }
 
@@ -50,6 +56,34 @@ func (p *Metrics) OnLoad(curator *Curator) {
 }
 
 func (p *Metrics) OnUnload() {}
+
+func (p *Metrics) metricsForWorkLeader(event Event) {
+	switch event.Type {
+	case WorkLeaderChangeset:
+		if event.Data != nil {
+			if _, ok := event.Data["worker_added"]; ok {
+				p.workLeaderWorkerCount().Inc(1)
+			}
+			if _, ok := event.Data["worker_removed"]; ok {
+				p.workLeaderWorkerCount().Dec(1)
+			}
+			if _, ok := event.Data["work_added"]; ok {
+				if added, ok := event.Data["work_added"].(map[string]Znode); ok {
+					p.workLeaderWorkCount().Inc(int64(len(added)))
+				}
+			}
+			if _, ok := event.Data["work_removed"]; ok {
+				if removed, ok := event.Data["work_removed"].(map[string]Znode); ok {
+					p.workLeaderWorkCount().Dec(int64(len(removed)))
+				}
+			}
+		}
+	case WorkLeaderActive:
+		p.workLeaderActiveGauge().Update(1)
+	case WorkLeaderInactive:
+		p.workLeaderActiveGauge().Update(0)
+	}
+}
 
 func (p *Metrics) metricsForDiscovery(event Event) {
 	switch event.Type {
@@ -98,8 +132,20 @@ func (p *Metrics) metricsForConnection(event Event) {
 	}
 }
 
+func (p *Metrics) workLeaderActiveGauge() metrics.Gauge {
+	return metrics.GetOrRegisterGauge("work_leader.active", p.Registry)
+}
+
+func (p *Metrics) workLeaderWorkerCount() metrics.Counter {
+	return metrics.GetOrRegisterCounter("work_leader.workers", p.Registry)
+}
+
+func (p *Metrics) workLeaderWorkCount() metrics.Counter {
+	return metrics.GetOrRegisterCounter("work_leader.work", p.Registry)
+}
+
 func (p *Metrics) discoveryCounter() metrics.Counter {
-	return metrics.GetOrRegisterCounter("discovered", p.Registry)
+	return metrics.GetOrRegisterCounter("discovery.discovered", p.Registry)
 }
 
 func (p *Metrics) eventCounter() metrics.Counter {
@@ -107,11 +153,11 @@ func (p *Metrics) eventCounter() metrics.Counter {
 }
 
 func (p *Metrics) registeredGauge() metrics.Gauge {
-	return metrics.GetOrRegisterGauge("registered", p.Registry)
+	return metrics.GetOrRegisterGauge("member.registered", p.Registry)
 }
 
 func (p *Metrics) leaderGauge() metrics.Gauge {
-	return metrics.GetOrRegisterGauge("leader", p.Registry)
+	return metrics.GetOrRegisterGauge("leader.elected", p.Registry)
 }
 
 func (p *Metrics) sessionGauge() metrics.Gauge {
