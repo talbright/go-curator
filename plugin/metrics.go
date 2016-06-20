@@ -53,6 +53,7 @@ func (p *Metrics) OnLoad(curator *Curator) {
 		p.Registry = metrics.NewPrefixedRegistry("curator.")
 	}
 	p.client = curator.Client
+	p.initMetrics()
 }
 
 func (p *Metrics) OnUnload() {}
@@ -130,6 +131,18 @@ func (p *Metrics) metricsForConnection(event Event) {
 			p.sessionGauge().Update(0)
 		}
 	}
+}
+
+func (p *Metrics) initMetrics() {
+	p.workLeaderActiveGauge().Update(0)
+	p.workLeaderWorkerCount().Clear()
+	p.workLeaderWorkCount().Clear()
+	p.discoveryCounter().Clear()
+	p.eventCounter().Clear()
+	p.registeredGauge().Update(0)
+	p.leaderGauge().Update(0)
+	p.sessionGauge().Update(0)
+	p.connectingCounter().Clear()
 }
 
 func (p *Metrics) workLeaderActiveGauge() metrics.Gauge {
