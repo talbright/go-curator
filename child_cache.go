@@ -38,6 +38,7 @@ Some notes:
 
 */
 type ChildCache struct {
+	CreateFlags   int32
 	parentPath    string
 	client        *Client
 	nodeCacheLock *sync.Mutex
@@ -50,6 +51,7 @@ func NewChildCache(client *Client, path string) *ChildCache {
 		client:        client,
 		nodeCache:     make(map[string]*Znode, 0),
 		nodeCacheLock: &sync.Mutex{},
+		CreateFlags:   zk.FlagPersistent,
 	}
 }
 
@@ -149,7 +151,7 @@ func (l *ChildCache) Add(nodes ...*Znode) (err error) {
 			if exists {
 				node.Stat = stat
 				l.nodeCache[node.Name] = node
-			} else if _, err := l.client.Create(nodePath, node.Data, 0, zk.WorldACLPermAll); err == nil {
+			} else if _, err := l.client.Create(nodePath, node.Data, l.CreateFlags, zk.WorldACLPermAll); err == nil {
 				if _, stat, err := l.client.Get(nodePath); err == nil {
 					node.Stat = stat
 				} else {

@@ -21,6 +21,24 @@ type WorkLeader struct {
 	mutex         *sync.RWMutex
 }
 
+func (p *WorkLeader) AddWork(node *Znode) (err error) {
+	workPath := path.Join(p.workPath, node.Name)
+	_, err = p.client.Create(workPath, node.Data, zk.FlagPersistent, zk.WorldACLPermAll)
+	return
+}
+
+func (p *WorkLeader) RemoveWork(node *Znode) (err error) {
+	workPath := path.Join(p.workPath, node.Name)
+	var version int32
+	if node.Stat != nil {
+		version = node.Stat.Version
+	} else {
+		version = -1
+	}
+	err = p.client.Delete(workPath, version)
+	return
+}
+
 func (p *WorkLeader) Name() string {
 	return "WorkLeader"
 }
