@@ -10,11 +10,6 @@ import (
 	"time"
 )
 
-//TODO grab via dotenv/env
-var zkHosts = []string{"127.0.0.1:2181"}
-var zkSessionTimeout = time.Second * 20
-var zkConnectionTimeout = time.Second * 20
-
 /*
 Collects go-zookeeper events.
 */
@@ -53,12 +48,12 @@ func ZkDeletePaths(client *Client, paths ...string) {
 /*
 Create client connection to zk with timeout.
 */
-func ZkConnect() (client *Client) {
+func ZkConnect(zkHosts []string, zkSessionTimeout time.Duration, zkWaitForSessionTimeout time.Duration) (client *Client) {
 	client = NewClient()
 	settings := &Settings{
 		ZkServers:               zkHosts,
 		ZkSessionTimeout:        zkSessionTimeout,
-		ZkWaitForSessionTimeout: zkConnectionTimeout,
+		ZkWaitForSessionTimeout: zkWaitForSessionTimeout,
 		ZkWaitForSession:        true,
 	}
 	if _, err := client.Connect(settings, zk.WithLogger(&NullLogger{})); err != nil {
