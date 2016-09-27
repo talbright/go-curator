@@ -4,7 +4,7 @@ import (
 	"path"
 	"sync"
 
-	"github.com/davecgh/go-spew/spew"
+	// "github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 )
@@ -100,24 +100,24 @@ func (p *WorkLeader) loop() {
 func (p *WorkLeader) addWorker(node *Znode) {
 	workPath := path.Join(path.Dir(path.Dir(node.Path)), "work")
 	workNode := NewZnode(workPath)
-	spew.Printf("MemberEventRegistered: add worker to tracker %s\n", workNode.Path)
+	// spew.Printf("MemberEventRegistered: add worker to tracker %s\n", workNode.Path)
 	data := map[string]interface{}{"worker_added": *node.DeepCopy()}
 	p.curator.FireEvent(Event{Type: WorkLeaderChangeset, Data: data})
 	p.workerTracker[workNode.Path] = workNode
 	if p.supervisor != nil {
-		spew.Printf("MemberEventRegistered: add worker to supervisor %s\n", workNode.Path)
+		// spew.Printf("MemberEventRegistered: add worker to supervisor %s\n", workNode.Path)
 		p.supervisor.AddWorker(workNode)
 	}
 }
 
 func (p *WorkLeader) removeWorker(node *Znode) {
 	workPath := path.Join(path.Dir(path.Dir(node.Path)), "work")
-	spew.Printf("MemberEventUnregistered: remove worker from tracker %s\n", workPath)
+	// spew.Printf("MemberEventUnregistered: remove worker from tracker %s\n", workPath)
 	data := map[string]interface{}{"worker_removed": *node.DeepCopy()}
 	p.curator.FireEvent(Event{Type: WorkLeaderChangeset, Data: data})
 	delete(p.workerTracker, workPath)
 	if p.supervisor != nil {
-		spew.Printf("MemberEventUnregistered: remove worker from supervisor %s\n", node.Path)
+		// spew.Printf("MemberEventUnregistered: remove worker from supervisor %s\n", node.Path)
 		p.supervisor.RemoveWorker(node)
 	}
 }
@@ -125,7 +125,7 @@ func (p *WorkLeader) removeWorker(node *Znode) {
 //Adds and removes work for the supervisor via child watch. The supervisor
 //uses ChildCache so work isn't lost between leadership changes.
 func (p *WorkLeader) processWorkWatchChangeset(event Event) {
-	spew.Println("processWorkWatchChangeset")
+	// spew.Println("processWorkWatchChangeset")
 	if p.supervisor == nil {
 		return
 	}
@@ -133,7 +133,7 @@ func (p *WorkLeader) processWorkWatchChangeset(event Event) {
 	data := make(map[string]interface{})
 	if added, ok := event.Data["added"].(map[string]Znode); ok {
 		for _, v := range added {
-			spew.Printf("processWorkWatchChangeset: add work %s\n", v.Path)
+			// spew.Printf("processWorkWatchChangeset: add work %s\n", v.Path)
 			p.supervisor.AddWork(&v)
 		}
 		if len(added) > 0 {
@@ -143,7 +143,7 @@ func (p *WorkLeader) processWorkWatchChangeset(event Event) {
 	}
 	if removed, ok := event.Data["removed"].(map[string]Znode); ok {
 		for _, v := range removed {
-			spew.Printf("processWorkWatchChangeset: remove work %s\n", v.Path)
+			// spew.Printf("processWorkWatchChangeset: remove work %s\n", v.Path)
 			p.supervisor.RemoveWork(&v)
 		}
 		if len(removed) > 0 {
@@ -161,12 +161,12 @@ func (p *WorkLeader) processExternalEvents(event Event) {
 	switch event.Type {
 	case LeaderEventElected:
 		if p.supervisor != nil {
-			spew.Println("LeaderEventElected: already leader")
+			// spew.Println("LeaderEventElected: already leader")
 			return
 		}
 		p.curator.FireEvent(Event{Type: WorkLeaderActive})
-		spew.Println("LeaderEventElected: create supervisor")
-		spew.Printf("LeaderEventElected: work path is %s\n", p.workPath)
+		// spew.Println("LeaderEventElected: create supervisor")
+		// spew.Printf("LeaderEventElected: work path is %s\n", p.workPath)
 		p.supervisor = NewWorkSupervisor(p.client, p.workPath)
 		p.supervisor.Load()
 		for _, v := range p.workerTracker {

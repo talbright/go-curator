@@ -2,6 +2,7 @@ package curator
 
 import (
 	"github.com/cenkalti/backoff"
+	// "github.com/davecgh/go-spew/spew"
 	"github.com/talbright/go-zookeeper/zk"
 
 	"errors"
@@ -162,6 +163,8 @@ func (w *ChildWatch) getChildrenAndWatch(event EventType) (err error) {
 	operation := func() error {
 		retryCount++
 		if children, _, w.childWatch, err = w.client.ChildrenW(w.Path); err == nil {
+			// spew.Printf("ChildWatch.getChildrenAndWatch: children of %s\n", w.Path)
+			// spew.Dump(children)
 			add, rm := w.applyChanges(children)
 			w.emitEvent(event, add, rm, nil)
 		}
@@ -178,6 +181,8 @@ func (w *ChildWatch) emitEvent(eventType EventType, adds map[string]Znode, remov
 	event.Data["added"] = adds
 	event.Data["path"] = w.Path
 	event.Data["removed"] = removals
+	// spew.Println("ChildWatch.emitEvent:")
+	// spew.Dump(event)
 	w.evntChn <- *event
 }
 

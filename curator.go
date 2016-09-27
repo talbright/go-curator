@@ -96,6 +96,13 @@ func (c *Curator) Start() (err error) {
 	return
 }
 
+func (c *Curator) Stop() (err error) {
+	//TODO
+	//c.ClearPlugins()
+	c.Client.Close()
+	return
+}
+
 func (c *Curator) FireEvent(event Event) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
