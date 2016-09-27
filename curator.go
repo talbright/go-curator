@@ -1,7 +1,7 @@
 package curator
 
 import (
-	_ "github.com/davecgh/go-spew/spew"
+	// "github.com/davecgh/go-spew/spew"
 	"github.com/talbright/go-zookeeper/zk"
 
 	"sync"

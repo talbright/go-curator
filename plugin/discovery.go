@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/cenkalti/backoff"
-	"github.com/davecgh/go-spew/spew"
+	// "github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 )
@@ -131,7 +131,7 @@ func (p *Discovery) loop() {
 					panic(err)
 				}
 
-				spew.Printf("Discovery: wait for path \"%s\" to exist\n", p.memberPath)
+				// spew.Printf("Discovery: wait for path \"%s\" to exist\n", p.memberPath)
 				if err = p.client.WaitToExist(p.memberPath, MaxWaitToExistTime); err != nil {
 					panic(err)
 				}

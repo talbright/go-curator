@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/cenkalti/backoff"
-	_ "github.com/davecgh/go-spew/spew"
+	// _ "github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 )

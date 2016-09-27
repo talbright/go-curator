@@ -135,22 +135,3 @@ func (p *WorkCollector) processWorkWatch(event Event) {
 
 	p.curator.FireEvent(Event{Type: eventType, Data: data})
 }
-
-/*
-func (p *WorkCollector) waitForNodeToExist() (err error) {
-	retryCount := 0
-	operation := func() error {
-		retryCount++
-		spew.Printf("WorkCollector.waitForNodeToExist: %d\n", retryCount)
-		exists, _, err := p.client.Exists(p.workPath)
-		if err == nil && !exists {
-			err = ErrInvalidPath
-		}
-		return err
-	}
-	expBackoff := backoff.NewExponentialBackOff()
-	expBackoff.MaxElapsedTime = defaultMaxRetryElapsedTime
-	backoff.Retry(operation, expBackoff)
-	return err
-}
-*/
