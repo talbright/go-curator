@@ -2,7 +2,7 @@ package curator
 
 import (
 	"github.com/cenkalti/backoff"
-	// "github.com/davecgh/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/talbright/go-zookeeper/zk"
 
 	"errors"
@@ -105,7 +105,7 @@ func (c *Client) WaitToExist(path string, maxWaitTime time.Duration) (err error)
 	retryCount := 0
 	operation := func() error {
 		retryCount++
-		// spew.Printf("Client.WaitToExist: %s (retry=%d)\n", path, retryCount)
+		spew.Printf("Client.WaitToExist: %s (retry=%d)\n", path, retryCount)
 		exists, _, err := c.Exists(path)
 		if err == nil && !exists {
 			err = ErrInvalidPath

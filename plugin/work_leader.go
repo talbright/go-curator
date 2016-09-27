@@ -4,7 +4,7 @@ import (
 	"path"
 	"sync"
 
-	// "github.com/davecgh/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 )
@@ -79,12 +79,12 @@ func (p *WorkLeader) loop() {
 		case event := <-p.eventChn:
 			if p.workWatch == nil && event.IsConnectedEvent() {
 
-				// spew.Printf("WorkLeader: create path \"%s\"\n", p.workPath)
+				spew.Printf("WorkLeader: create path \"%s\"\n", p.workPath)
 				if err = p.client.CreatePath(p.workPath, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
 					panic(err)
 				}
 
-				// spew.Printf("WorkLeader: wait for path \"%s\" to exist\n", p.workPath)
+				spew.Printf("WorkLeader: wait for path \"%s\" to exist\n", p.workPath)
 				if err = p.client.WaitToExist(p.workPath, MaxWaitToExistTime); err != nil {
 					panic(err)
 				}
