@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/cenkalti/backoff"
-	_ "github.com/davecgh/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 )
@@ -128,6 +128,11 @@ func (p *Discovery) loop() {
 			if p.rootWatch == nil && event.IsConnectedEvent() {
 
 				if err := p.client.CreatePath(p.memberPath, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
+					panic(err)
+				}
+
+				spew.Printf("Discovery: wait for path \"%s\" to exist\n", p.memberPath)
+				if err = p.client.WaitToExist(p.memberPath, MaxWaitToExistTime); err != nil {
 					panic(err)
 				}
 

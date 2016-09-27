@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/cenkalti/backoff"
-	_ "github.com/davecgh/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 )
@@ -90,6 +90,11 @@ func (p *Member) register(recoveryMode bool) {
 	memberLockRoot := path.Join(p.basePath, p.ID, "lock")
 
 	if err := p.client.CreatePath(memberLockRoot, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
+		panic(err)
+	}
+
+	spew.Printf("Member: wait for path \"%s\" to exist\n", memberLockRoot)
+	if err := p.client.WaitToExist(memberLockRoot, MaxWaitToExistTime); err != nil {
 		panic(err)
 	}
 

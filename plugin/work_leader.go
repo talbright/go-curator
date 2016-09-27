@@ -3,15 +3,11 @@ package plugin
 import (
 	"path"
 	"sync"
-	"time"
 
-	"github.com/cenkalti/backoff"
 	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 )
-
-const defaultMaxRetryElapsedTime = 3 * time.Minute
 
 type WorkLeader struct {
 	curator       *Curator
@@ -89,7 +85,7 @@ func (p *WorkLeader) loop() {
 				}
 
 				spew.Printf("WorkLeader: wait for path \"%s\" to exist\n", p.workPath)
-				if err = p.waitForNodeToExist(); err != nil {
+				if err = p.client.WaitToExist(p.workPath, MaxWaitToExistTime); err != nil {
 					panic(err)
 				}
 
@@ -192,21 +188,4 @@ func (p *WorkLeader) processExternalEvents(event Event) {
 	case MemberEventRegistered:
 		p.addWorker(event.Node)
 	}
-}
-
-func (p *WorkLeader) waitForNodeToExist() (err error) {
-	retryCount := 0
-	operation := func() error {
-		retryCount++
-		spew.Printf("WorkLeader.waitForNodeToExist: %d\n", retryCount)
-		exists, _, err := p.client.Exists(p.workPath)
-		if err == nil && !exists {
-			err = ErrInvalidPath
-		}
-		return err
-	}
-	expBackoff := backoff.NewExponentialBackOff()
-	expBackoff.MaxElapsedTime = defaultMaxRetryElapsedTime
-	backoff.Retry(operation, expBackoff)
-	return err
 }

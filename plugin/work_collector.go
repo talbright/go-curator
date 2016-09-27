@@ -4,7 +4,7 @@ import (
 	"path"
 	"sync"
 
-	// "github.com/davecgh/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 )
@@ -75,11 +75,17 @@ func (p *WorkCollector) loop() {
 			// spew.Println("WorkCollector: main event loop")
 			// spew.Dump(event)
 			if p.workWatch == nil && event.IsConnectedEvent() {
-				// spew.Printf("WorkCollector: creating path if it doesn't exist %s\n", p.workPath)
+
+				spew.Printf("WorkCollector: create path \"%s\"\n", p.workPath)
 				if err = p.client.CreatePath(p.workPath, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
 					panic(err)
 				}
-				// spew.Printf("WorkCollector: setting watch on %s\n", p.workPath)
+
+				spew.Printf("WorkCollector: wait for path \"%s\" to exist\n", p.workPath)
+				if err = p.client.WaitToExist(p.workPath, MaxWaitToExistTime); err != nil {
+					panic(err)
+				}
+
 				p.workWatch = NewChildWatch(p.client, p.workPath)
 				if workWatchChn, err = p.workWatch.WatchChildren(); err != nil {
 					panic(err)
@@ -129,3 +135,22 @@ func (p *WorkCollector) processWorkWatch(event Event) {
 
 	p.curator.FireEvent(Event{Type: eventType, Data: data})
 }
+
+/*
+func (p *WorkCollector) waitForNodeToExist() (err error) {
+	retryCount := 0
+	operation := func() error {
+		retryCount++
+		spew.Printf("WorkCollector.waitForNodeToExist: %d\n", retryCount)
+		exists, _, err := p.client.Exists(p.workPath)
+		if err == nil && !exists {
+			err = ErrInvalidPath
+		}
+		return err
+	}
+	expBackoff := backoff.NewExponentialBackOff()
+	expBackoff.MaxElapsedTime = defaultMaxRetryElapsedTime
+	backoff.Retry(operation, expBackoff)
+	return err
+}
+*/

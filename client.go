@@ -1,14 +1,18 @@
 package curator
 
 import (
+	"github.com/cenkalti/backoff"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/talbright/go-zookeeper/zk"
+
 	"errors"
 	"fmt"
-	_ "github.com/davecgh/go-spew/spew"
-	"github.com/talbright/go-zookeeper/zk"
 	"strings"
 	"sync"
 	"time"
 )
+
+const MaxWaitToExistTime = 1 * time.Minute
 
 //NullLogger can be used to silence output from the client connection. Only
 //recommended for tests.
@@ -95,4 +99,21 @@ func (c *Client) CreatePath(path string, data []byte, acl []zk.ACL) error {
 		}
 	}
 	return nil
+}
+
+func (c *Client) WaitToExist(path string, maxWaitTime time.Duration) (err error) {
+	retryCount := 0
+	operation := func() error {
+		retryCount++
+		spew.Printf("Client.WaitToExist: %s (retry=%d)\n", path, retryCount)
+		exists, _, err := c.Exists(path)
+		if err == nil && !exists {
+			err = ErrInvalidPath
+		}
+		return err
+	}
+	expBackoff := backoff.NewExponentialBackOff()
+	expBackoff.MaxElapsedTime = maxWaitTime
+	backoff.Retry(operation, expBackoff)
+	return err
 }
