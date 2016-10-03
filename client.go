@@ -104,12 +104,12 @@ func (c *Client) CreatePath(path string, data []byte, acl []zk.ACL) error {
 func (c *Client) WaitToExist(path string, maxWaitTime time.Duration) (err error) {
 	retryCount := 0
 	operation := func() error {
-		retryCount++
-		spew.Printf("Client.WaitToExist: %s (retry=%d)\n", path, retryCount)
+		spew.Printf("[curator] Client#WaitToExist: path %v (retry=%d)\n", path, retryCount)
 		exists, _, err := c.Exists(path)
 		if err == nil && !exists {
 			err = ErrInvalidPath
 		}
+		retryCount++
 		return err
 	}
 	expBackoff := backoff.NewExponentialBackOff()

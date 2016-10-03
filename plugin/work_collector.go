@@ -4,7 +4,6 @@ import (
 	"path"
 	"sync"
 
-	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 )
@@ -76,12 +75,10 @@ func (p *WorkCollector) loop() {
 			// spew.Dump(event)
 			if p.workWatch == nil && event.IsConnectedEvent() {
 
-				spew.Printf("WorkCollector: create path \"%s\"\n", p.workPath)
 				if err = p.client.CreatePath(p.workPath, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
 					panic(err)
 				}
 
-				spew.Printf("WorkCollector: wait for path \"%s\" to exist\n", p.workPath)
 				if err = p.client.WaitToExist(p.workPath, MaxWaitToExistTime); err != nil {
 					panic(err)
 				}

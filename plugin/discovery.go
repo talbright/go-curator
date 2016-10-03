@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/cenkalti/backoff"
-	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 )
@@ -43,14 +42,14 @@ func (p *Discovery) OnLoad(curator *Curator) {
 	p.memberPath = path.Join(curator.Settings.RootPath, "members")
 	p.client = curator.Client
 	p.curator = curator
-	p.Discover()
+	p.StartDiscovery()
 }
 
 func (p *Discovery) OnUnload() {
 	p.StopDiscovery()
 }
 
-func (p *Discovery) Discover() {
+func (p *Discovery) StartDiscovery() {
 	p.eventChn = make(chan Event, 10)
 	p.stopChn = make(chan struct{})
 	p.mutex = &sync.RWMutex{}
@@ -131,7 +130,6 @@ func (p *Discovery) loop() {
 					panic(err)
 				}
 
-				spew.Printf("Discovery: wait for path \"%s\" to exist\n", p.memberPath)
 				if err = p.client.WaitToExist(p.memberPath, MaxWaitToExistTime); err != nil {
 					panic(err)
 				}
