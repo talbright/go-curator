@@ -11,15 +11,16 @@ import (
 )
 
 type Leader struct {
-	curator  *Curator
-	client   *Client
-	basePath string
-	lockPath string
-	stopChn  chan struct{}
-	eventChn chan Event
-	zkLock   *zk.Lock
-	mutex    *sync.RWMutex
-	leader   bool
+	curator   *Curator
+	client    *Client
+	basePath  string
+	lockPath  string
+	stopChn   chan struct{}
+	eventChn  chan Event
+	zkLock    *zk.Lock
+	mutex     *sync.RWMutex
+	leader    bool
+	Signature []byte
 }
 
 func (p *Leader) Name() string {
@@ -120,7 +121,7 @@ func (p *Leader) campaign(recoveryMode bool) {
 			}
 		}
 
-		if path, err := p.zkLock.LockWithData(zk.NoData); err == nil {
+		if path, err := p.zkLock.LockWithData(p.Signature); err == nil {
 			p.setLockPath(path)
 			p.curator.FireEvent(Event{Type: LeaderEventElected, Node: NewZnode(path)})
 		}

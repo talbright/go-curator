@@ -26,7 +26,7 @@ func (p *EventSpew) Notify(event Event) {
 
 func (p *EventSpew) OnLoad(curator *Curator) {
 	if p.Log == nil {
-		p.Log = log.New(os.Stdout, "[ES] ", log.Ldate|log.Ltime)
+		p.Log = log.New(os.Stdout, "[curator] ", log.Ldate|log.Ltime)
 	}
 	p.client = curator.Client
 }
