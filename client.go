@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const MaxWaitToExistTime = 1 * time.Minute
+const MaxWaitToExistTime = 2 * time.Minute
 
 //NullLogger can be used to silence output from the client connection. Only
 //recommended for tests.
