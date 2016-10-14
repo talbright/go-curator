@@ -3,6 +3,7 @@ package plugin
 import (
 	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
+	"github.com/talbright/go-zookeeper/zk"
 
 	"fmt"
 	"strings"
@@ -18,7 +19,9 @@ func (w Work) Id() string { return w.Path }
 
 func NewWork(client *Client, path string) *Work {
 	n := NewZnode(path)
-	return &Work{Znode: *n, Children: NewChildCache(client, path)}
+	cc := NewChildCache(client, path)
+	cc.CreateFlags = zk.FlagEphemeral
+	return &Work{Znode: *n, Children: cc}
 }
 
 func (w *Work) ToSpew(depth int) string {
@@ -43,7 +46,9 @@ func (w Worker) Id() string { return w.Path }
 
 func NewWorker(client *Client, path string) *Worker {
 	n := NewZnode(path)
-	return &Worker{Znode: *n, Children: NewChildCache(client, path)}
+	cc := NewChildCache(client, path)
+	cc.CreateFlags = zk.FlagEphemeral
+	return &Worker{Znode: *n, Children: cc}
 }
 
 func (w *Worker) ShiftWork(amount int) []Znode {

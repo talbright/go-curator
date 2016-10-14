@@ -1,6 +1,7 @@
 package curator
 
 import (
+	_ "github.com/davecgh/go-spew/spew"
 	"github.com/talbright/go-zookeeper/zk"
 
 	"errors"
@@ -32,7 +33,6 @@ unix, the children of a znode have unique names.
 Some notes:
 
 * Does not observe state changes in zk
-* Nodes are persistant, not ephemeral
 * Thread safe
 * Does not require or use channels
 
