@@ -1,9 +1,11 @@
 package curator
 
 import (
+	"github.com/Sirupsen/logrus"
 	_ "github.com/davecgh/go-spew/spew"
 	"github.com/talbright/go-zookeeper/zk"
 
+	"fmt"
 	"sync"
 	"time"
 )
@@ -15,6 +17,8 @@ type Settings struct {
 	ZkWaitForSessionTimeout time.Duration
 	ZkWaitForSession        bool
 	RootPath                string
+	Logger                  *logrus.Logger
+	LogComponent            string
 }
 
 type Curator struct {
@@ -26,6 +30,9 @@ type Curator struct {
 }
 
 func NewCurator(client *Client, settings *Settings, plugins []Plugin) *Curator {
+	if settings.Logger == nil {
+		settings.Logger = logrus.StandardLogger()
+	}
 	curator := &Curator{
 		Client:   client,
 		Settings: settings,
@@ -38,9 +45,18 @@ func NewCurator(client *Client, settings *Settings, plugins []Plugin) *Curator {
 	return curator
 }
 
+func (c *Curator) Logger() *logrus.Logger {
+	return c.Settings.Logger
+}
+
+func (c *Curator) LogEntry(suffix string) *logrus.Entry {
+	return c.Settings.Logger.WithField("component", fmt.Sprintf("%s.%s", c.Settings.LogComponent, suffix))
+}
+
 func (c *Curator) LoadPlugin(plugin Plugin) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+	c.Logger().WithField("component", c.Settings.LogComponent).Printf("loading plugin %s", plugin.Name())
 	c.plugins = append(c.plugins, plugin)
 	plugin.OnLoad(c)
 }

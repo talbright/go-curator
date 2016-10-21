@@ -1,12 +1,14 @@
 package plugin
 
 import (
-	"path"
-	"sync"
-
+	log "github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
+
+	"fmt"
+	"path"
+	"sync"
 )
 
 type WorkLeader struct {
@@ -50,7 +52,6 @@ func (p *WorkLeader) OnUnload() {
 // status. It is a convenience method that simply writes znodes to the
 // appropriate path in zk.
 func (p *WorkLeader) AddWork(node *Znode) (err error) {
-	spew.Printf("[curator] WorkLeader#AddWork: node %#v\n", node)
 	workPath := path.Join(p.workPath, node.Name)
 	_, err = p.client.Create(workPath, node.Data, zk.FlagPersistent, zk.WorldACLPermAll)
 	return
@@ -60,7 +61,6 @@ func (p *WorkLeader) AddWork(node *Znode) (err error) {
 // leadership status. It is a convenience method that simply removes znodes
 // from the appropriate path in zk.
 func (p *WorkLeader) RemoveWork(node *Znode) (err error) {
-	spew.Printf("[curator] WorkLeader#RemoveWork: node %#v\n", node)
 	workPath := path.Join(p.workPath, node.Name)
 	var version int32
 	if node.Stat != nil {
@@ -95,22 +95,25 @@ func (p *WorkLeader) startWorkLeader() {
 func (p *WorkLeader) loop() {
 	workWatchChn := make(chan Event)
 	var err error
+	entry := p.curator.LogEntry("work_leader")
+
 	for {
 		select {
 		case event := <-p.eventChn:
-			spew.Printf("[curator] WorkLeader#loop: event %#v\n", event)
 			if event.Type == LeaderEventElected {
-				spew.Printf("[curator] WorkLeader#loop: becomming work leader!\n")
+				entry.Info("work leader: elected")
 				if !p.IsLeader() {
 					p.becomeLeader()
 					if workWatchChn, err = p.workWatch.WatchChildren(); err != nil {
 						panic(err)
 					}
+				} else {
+					entry.Warn("work leader: already elected")
 				}
 			} else if event.Type == LeaderEventCandidate {
-				spew.Printf("[curator] WorkLeader#loop: leader candidate\n")
+				entry.Info("work leader: candidate")
 			} else if event.Type == LeaderEventResigned {
-				spew.Printf("[curator] WorkLeader#loop: resigning leadership!\n")
+				entry.Info("work leader: resigned")
 				if p.IsLeader() {
 					p.resignLeader()
 					workWatchChn = make(chan Event)
@@ -119,10 +122,10 @@ func (p *WorkLeader) loop() {
 				//the Discovery plugin, but that hasn't been flushed out yet. Curator holds
 				//references to all plugins, however there are concurrency issues to consider.
 			} else if event.Type == DiscoveryEventActive {
-				spew.Printf("[curator] WorkLeader#loop: worker node is ACTIVE %s\n", event.Data["path"])
+				entry.WithField("path", event.Data["path"]).Info("work leader discovery: active")
 				p.addWorker(event.Data["path"].(string))
 			} else if event.Type == DiscoveryEventInactive {
-				spew.Printf("[curator] WorkLeader#loop: worker node is INACTIVE %s\n", event.Data["path"])
+				entry.WithField("path", event.Data["path"]).Info("work leader discovery: inactive")
 				p.removeWorker(event.Data["path"].(string))
 			}
 		case event := <-workWatchChn:
@@ -134,13 +137,18 @@ func (p *WorkLeader) loop() {
 }
 
 func (p *WorkLeader) becomeLeader() {
+	entry := p.curator.LogEntry("work_leader")
 	p.setLeader(true)
 	p.supervisor = NewWorkSupervisor(p.client, p.workPath)
+	p.supervisor.Logger = p.curator.Logger()
+	p.supervisor.LogComponent = fmt.Sprintf("%s.%s", p.curator.Settings.LogComponent, "work_supervisor")
 	p.supervisor.Load()
+	entry.WithField("spew", p.workerTracker).Debug("loading work onto supervisor")
 	for _, v := range p.workerTracker {
-		p.supervisor.AddWorker(v)
+		if err := p.supervisor.AddWorker(v); err != nil {
+			entry.WithError(err).WithField("worker", spew.Sprintf("%#v", v)).Error("unable to add worker")
+		}
 	}
-	p.workWatch = NewChildWatch(p.client, p.workPath)
 
 	if err := p.client.CreatePath(p.workPath, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
 		panic(err)
@@ -149,6 +157,10 @@ func (p *WorkLeader) becomeLeader() {
 	if err := p.client.WaitToExist(p.workPath, MaxWaitToExistTime); err != nil {
 		panic(err)
 	}
+
+	entry.WithField("path", p.workPath).Info("watching for work assignments")
+
+	p.workWatch = NewChildWatch(p.client, p.workPath)
 
 	p.curator.FireEvent(Event{Type: WorkLeaderActive})
 }
@@ -163,15 +175,20 @@ func (p *WorkLeader) resignLeader() {
 //Adds and removes work for the supervisor (via child watch.) The supervisor
 //uses ChildCache so work isn't lost between leadership changes.
 func (p *WorkLeader) processWorkEvents(event Event) {
-	spew.Printf("[curator] WorkLeader#processWorkEvents: event %#v\n", event)
+	entry := p.curator.LogEntry("work_leader")
+	entry.WithFields(log.Fields{
+		"event": event.Type,
+		"spew":  spew.Sprintf("%#v", event),
+	}).Debug("work watch change")
 	if p.supervisor == nil {
+		entry.Warn("supervisor was not set")
 		return
 	}
 	var fireEvent bool
 	data := make(map[string]interface{})
 	if added, ok := event.Data["added"].(map[string]Znode); ok {
+		entry.WithField("count", len(added)).Debug("asking supervisor to add work")
 		for _, v := range added {
-			spew.Printf("[curator] WorkLeader#processWorkEvents: asking supervisor to add work %#v\n", v)
 			p.supervisor.AddWork(&v)
 		}
 		if len(added) > 0 {
@@ -180,9 +197,11 @@ func (p *WorkLeader) processWorkEvents(event Event) {
 		}
 	}
 	if removed, ok := event.Data["removed"].(map[string]Znode); ok {
+		entry.WithField("count", len(removed)).Debug("asking supervisor to remove work")
 		for _, v := range removed {
-			spew.Printf("[curator] WorkLeader#processWorkEvents: asking supervisor to remove work %#v\n", v)
-			p.supervisor.RemoveWork(&v)
+			if err := p.supervisor.RemoveWork(&v); err != nil {
+				entry.WithError(err).WithField("work", spew.Sprintf("%#v", v)).Error("unable to remove work")
+			}
 		}
 		if len(removed) > 0 {
 			data["work_removed"] = removed
@@ -209,14 +228,18 @@ Supervisor:
 
 */
 func (p *WorkLeader) addWorker(discoveryPath string) {
+	entry := p.curator.LogEntry("work_leader")
 	workPath := path.Join(path.Dir(discoveryPath), "work")
-	spew.Printf("[curator] WorkLeader#addWorker: path %s\n", workPath)
+	entry.WithField("path", workPath).Debug("adding worker")
 	workNode := NewZnode(workPath)
 	data := map[string]interface{}{"worker_added": *workNode.DeepCopy()}
 	p.curator.FireEvent(Event{Type: WorkLeaderChangeset, Data: data})
 	p.workerTracker[workNode.Path] = workNode
+	entry.WithField("spew", p.workerTracker).Debug("worker tracker")
 	if p.IsLeader() {
-		p.supervisor.AddWorker(workNode)
+		if err := p.supervisor.AddWorker(workNode); err != nil {
+			entry.WithError(err).WithField("worker", spew.Sprintf("%#v", workNode)).Error("unable to add worker")
+		}
 	}
 }
 
@@ -235,13 +258,17 @@ Supervisor:
 
 */
 func (p *WorkLeader) removeWorker(discoveryPath string) {
+	entry := p.curator.LogEntry("work_leader")
 	workPath := path.Join(path.Dir(discoveryPath), "work")
-	spew.Printf("[curator] WorkLeader#removeWorker: path %s\n", workPath)
+	entry.WithField("path", workPath).Debug("removing worker")
 	workNode := NewZnode(workPath)
 	data := map[string]interface{}{"worker_removed": *workNode.DeepCopy()}
 	p.curator.FireEvent(Event{Type: WorkLeaderChangeset, Data: data})
 	delete(p.workerTracker, workPath)
+	entry.WithField("spew", p.workerTracker).Debug("worker tracker")
 	if p.IsLeader() {
-		p.supervisor.RemoveWorker(workNode)
+		if err := p.supervisor.RemoveWorker(workNode); err != nil {
+			entry.WithError(err).WithField("worker", spew.Sprintf("%#v", workNode)).Error("unable to remove worker")
+		}
 	}
 }

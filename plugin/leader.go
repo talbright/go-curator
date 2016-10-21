@@ -100,12 +100,14 @@ func (p *Leader) loop() {
 }
 
 func (p *Leader) campaign(recoveryMode bool) {
+	entry := p.curator.LogEntry("leader").WithField("recovery", recoveryMode)
+	entry.Info("campaigning for leadership")
 	p.setLeader(false)
 	p.curator.FireEvent(Event{Type: LeaderEventCandidate})
 	if p.zkLock == nil {
 		p.zkLock = zk.NewLock(p.client.Conn, p.basePath, zk.WorldACLPermAll)
 	}
-
+	retryCount := 0
 	operation := func() (err error) {
 		//Try to unlock so we can re-aquire
 		if recoveryMode {
@@ -120,8 +122,10 @@ func (p *Leader) campaign(recoveryMode bool) {
 				}
 			}
 		}
-
+		entry.WithField("retry", retryCount).Debug("attempting to acquire lock")
+		retryCount++
 		if path, err := p.zkLock.LockWithData(p.Signature); err == nil {
+			entry.WithField("retry", retryCount).WithField("path", path).Info("became leader")
 			p.setLockPath(path)
 			p.curator.FireEvent(Event{Type: LeaderEventElected, Node: NewZnode(path)})
 		}

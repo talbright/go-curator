@@ -86,6 +86,8 @@ func (p *Member) loop() {
 }
 
 func (p *Member) register(recoveryMode bool) {
+	entry := p.curator.LogEntry("member").WithField("recovery", recoveryMode)
+	entry.Info("registering membership")
 
 	memberLockRoot := path.Join(p.basePath, p.ID, "lock")
 
@@ -101,6 +103,7 @@ func (p *Member) register(recoveryMode bool) {
 		p.zkLock = zk.NewLock(p.client.Conn, memberLockRoot, zk.WorldACLPermAll)
 	}
 
+	retryCount := 0
 	operation := func() (err error) {
 		//Try to unlock so we can re-aquire
 		if recoveryMode {
@@ -115,8 +118,10 @@ func (p *Member) register(recoveryMode bool) {
 				}
 			}
 		}
-
+		entry.WithField("retry", retryCount).Debug("attempting to acquire lock")
+		retryCount++
 		if path, err := p.zkLock.LockWithData(zk.NoData); err == nil {
+			entry.WithField("retry", retryCount).WithField("path", path).Info("registered membership")
 			p.setMemberPath(path)
 			p.curator.FireEvent(Event{Type: MemberEventRegistered, Node: NewZnode(path)})
 		}

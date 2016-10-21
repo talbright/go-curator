@@ -4,7 +4,9 @@ import (
 	"path"
 	"sync"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/cenkalti/backoff"
+	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 )
@@ -98,14 +100,22 @@ func (p *Discovery) clearMembers() {
 func (p *Discovery) mergeMember(path string, meta *MembershipMeta) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
+	entry := p.curator.LogEntry("discovery").WithFields(log.Fields{
+		"path": path,
+		"meta": spew.Sprintf("%#v", meta),
+	})
+	entry.WithField("spew", p.members).Debug("current members")
 	if updateMeta, exists := p.members[path]; exists {
 		if updateMeta.active == meta.active {
+			entry.Warn("tracking: member already exists and active")
 			return
 		} else {
+			entry.Info("tracking: member already exists and became active")
 			updateMeta.active = meta.active
 			updateMeta.znode = meta.znode
 		}
 	} else {
+		entry.Info("tracking: new member")
 		p.members[path] = meta
 	}
 	var eventType EventType
@@ -121,6 +131,7 @@ func (p *Discovery) mergeMember(path string, meta *MembershipMeta) {
 func (p *Discovery) loop() {
 	rootWatchChn := make(chan Event)
 	var err error
+	entry := p.curator.LogEntry("discovery")
 	for {
 		select {
 		case event := <-p.eventChn:
@@ -135,6 +146,7 @@ func (p *Discovery) loop() {
 				}
 
 				p.rootWatch = NewChildWatch(p.client, p.memberPath)
+				entry.WithField("path", p.memberPath).Info("watching for members")
 				if rootWatchChn, err = p.rootWatch.WatchChildren(); err != nil {
 					panic(err)
 				}
@@ -148,6 +160,11 @@ func (p *Discovery) loop() {
 }
 
 func (p *Discovery) processRootWatchChangeset(event Event) {
+	entry := p.curator.LogEntry("discovery")
+	entry.WithFields(log.Fields{
+		"event": event.Type,
+		"spew":  spew.Sprintf("%#v", event),
+	}).Debug("root membership change")
 	if added, yes := event.Data["added"].(map[string]Znode); yes {
 		for k, _ := range added {
 			fullPath := path.Join(p.memberPath, k)
@@ -159,6 +176,8 @@ func (p *Discovery) processRootWatchChangeset(event Event) {
 }
 
 func (p *Discovery) startDescendentWatch(watchPath string) {
+	entry := p.curator.LogEntry("discovery").WithField("path", watchPath)
+	entry.Info("starting descendent watch")
 	go func() {
 
 		retryCount := 0
@@ -172,6 +191,7 @@ func (p *Discovery) startDescendentWatch(watchPath string) {
 				meta := &MembershipMeta{
 					stopChn: make(chan struct{}),
 				}
+				entry.WithField("spew", children).Debug("descendent watch found children")
 				if len(children) > 0 {
 					meta.znode = NewZnode(path.Join(watchPath, children[0]))
 					meta.active = true

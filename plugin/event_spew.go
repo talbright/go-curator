@@ -1,14 +1,13 @@
 package plugin
 
 import (
+	"github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
-	"log"
-	"os"
 )
 
 type EventSpew struct {
-	Log    *log.Logger
+	Log    *logrus.Entry
 	client *Client
 }
 
@@ -21,12 +20,12 @@ func (p *EventSpew) Accepts(eventType EventType) bool {
 }
 
 func (p *EventSpew) Notify(event Event) {
-	p.Log.Printf(spew.Sprintf("%#x %#+v\n", p.client.SessionID(), event))
+	p.Log.Debugf(spew.Sprintf("%#x %#+v\n", p.client.SessionID(), event))
 }
 
 func (p *EventSpew) OnLoad(curator *Curator) {
 	if p.Log == nil {
-		p.Log = log.New(os.Stdout, "[curator] ", log.Ldate|log.Ltime)
+		p.Log = curator.LogEntry("spew")
 	}
 	p.client = curator.Client
 }

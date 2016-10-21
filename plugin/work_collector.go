@@ -4,6 +4,8 @@ import (
 	"path"
 	"sync"
 
+	log "github.com/Sirupsen/logrus"
+	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 )
@@ -68,11 +70,10 @@ func (p *WorkCollector) Work() (work map[string]*Znode) {
 func (p *WorkCollector) loop() {
 	workWatchChn := make(chan Event)
 	var err error
+	entry := p.curator.LogEntry("work_collector")
 	for {
 		select {
 		case event := <-p.eventChn:
-			// spew.Println("WorkCollector: main event loop")
-			// spew.Dump(event)
 			if p.workWatch == nil && event.IsConnectedEvent() {
 
 				if err = p.client.CreatePath(p.workPath, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
@@ -84,13 +85,12 @@ func (p *WorkCollector) loop() {
 				}
 
 				p.workWatch = NewChildWatch(p.client, p.workPath)
+				entry.WithField("path", p.workPath).Info("watching for work")
 				if workWatchChn, err = p.workWatch.WatchChildren(); err != nil {
 					panic(err)
 				}
 			}
 		case event := <-workWatchChn:
-			// spew.Println("WorkCollector: child watch event")
-			// spew.Dump(event)
 			p.processWorkWatch(event)
 		case <-p.stopChn:
 			return
@@ -101,16 +101,23 @@ func (p *WorkCollector) loop() {
 func (p *WorkCollector) processWorkWatch(event Event) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
+	entry := p.curator.LogEntry("work_collector")
+	entry.WithFields(log.Fields{
+		"event": event.Type,
+		"spew":  spew.Sprintf("%#v", event),
+	}).Debug("work watch change")
 	added := make(map[string]Znode)
 	removed := make(map[string]Znode)
 	var ok bool
 	if added, ok = event.Data["added"].(map[string]Znode); ok {
+		entry.Debugf("adding %d nodes", len(added))
 		for k, v := range added {
 			fullPath := path.Join(p.workPath, k)
 			p.work[fullPath] = &v
 		}
 	}
 	if removed, ok = event.Data["removed"].(map[string]Znode); ok {
+		entry.Debugf("removing %d nodes", len(removed))
 		for k, _ := range removed {
 			fullPath := path.Join(p.workPath, k)
 			delete(p.work, fullPath)
@@ -132,22 +139,3 @@ func (p *WorkCollector) processWorkWatch(event Event) {
 
 	p.curator.FireEvent(Event{Type: eventType, Data: data})
 }
-
-/*
-func (p *WorkCollector) waitForNodeToExist() (err error) {
-	retryCount := 0
-	operation := func() error {
-		retryCount++
-		spew.Printf("WorkCollector.waitForNodeToExist: %d\n", retryCount)
-		exists, _, err := p.client.Exists(p.workPath)
-		if err == nil && !exists {
-			err = ErrInvalidPath
-		}
-		return err
-	}
-	expBackoff := backoff.NewExponentialBackOff()
-	expBackoff.MaxElapsedTime = defaultMaxRetryElapsedTime
-	backoff.Retry(operation, expBackoff)
-	return err
-}
-*/
