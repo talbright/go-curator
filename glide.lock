@@ -1,5 +1,5 @@
-hash: 146bb1aa5777cb3b7cc281d4f72c105adc80a7ab38464ea5887a2ca46280ec84
-updated: 2016-06-12T23:14:31.666478094-04:00
+hash: da75a1ae73d29fbed4b28c4b4900895f0d85cedea10a76d3fdc2badf9503ffab
+updated: 2016-10-20T22:12:15.717861258-04:00
 imports:
 - name: github.com/cenkalti/backoff
   version: c29158af31815ccc31ca29c86c121bc39e00d3d8
@@ -13,12 +13,30 @@ imports:
   - ginkgo
 - name: github.com/onsi/gomega
   version: 815512bce8c889153a13104c9d9b2416153c1e02
+  subpackages:
+  - format
+  - internal/assertion
+  - internal/asyncassertion
+  - internal/testingtsupport
+  - matchers
+  - types
+  - internal/oraclematcher
+  - matchers/support/goraph/bipartitegraph
+  - matchers/support/goraph/edge
+  - matchers/support/goraph/node
+  - matchers/support/goraph/util
 - name: github.com/rcrowley/go-metrics
   version: eeba7bd0dd01ace6e690fa833b3f22aaec29af43
 - name: github.com/satori/go.uuid
   version: f9ab0dce87d815821e221626b772e3475a0d2749
+- name: github.com/Sirupsen/logrus
+  version: 3ec0642a7fb6488f65b06f9040adc67e3990296a
 - name: github.com/talbright/go-zookeeper
   version: 1f884c29d5bf0cc3dd2a8d7623058b5e276d8bda
   subpackages:
   - zk
+- name: golang.org/x/sys
+  version: 002cbb5f952456d0c50e0d2aff17ea5eca716979
+  subpackages:
+  - unix
 devImports: []

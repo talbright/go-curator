@@ -13,3 +13,4 @@ import:
   subpackages:
   - spew
 - package: github.com/rcrowley/go-metrics
+- package: github.com/Sirupsen/logrus
