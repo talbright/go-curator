@@ -1,12 +1,9 @@
 package plugin
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 	"github.com/talbright/go-zookeeper/zk"
 
-	"fmt"
-	"strings"
 	"sync"
 )
 
@@ -24,17 +21,8 @@ func NewWork(client *Client, path string) *Work {
 	return &Work{Znode: *n, Children: cc}
 }
 
-func (w *Work) ToSpew(depth int) string {
-	children := w.Children.ToSlice()
-	nodeNames := make([]string, 0)
-	for _, v := range children {
-		nodeNames = append(nodeNames, v.Name)
-	}
-	summary := fmt.Sprintf("(%T)(<%p>) [id:%s,count:%d,items:%s]\n", w, w, w.Id(), len(nodeNames), strings.Join(nodeNames, ","))
-	var spewage string
-	cc := &spew.ConfigState{MaxDepth: depth, Indent: "\t"}
-	spewage = cc.Sdump(w)
-	return summary + spewage
+func (w Work) Spew() string {
+	return SpewableWrapper(nil, w)
 }
 
 type Worker struct {
@@ -58,7 +46,7 @@ func (w *Worker) ShiftWork(amount int) []Znode {
 		for _, v := range w.Children.ToSlice()[0:amount] {
 			newNode := v
 			if err := w.Children.Remove(&newNode); err != nil {
-				// log.WithError(err).Warn("unable to remove worker")
+				//TODO: log.WithError(err).Warn("unable to remove worker")
 			}
 			removed = append(removed, newNode)
 		}
@@ -70,22 +58,13 @@ func (w *Worker) UnshiftWork(nodes []Znode) {
 	for _, n := range nodes {
 		newNode := n
 		if err := w.Children.Add(&newNode); err != nil {
-			//log.WithError(err).Warn("unable to add node")
+			//TODO: log.WithError(err).Warn("unable to add node")
 		}
 	}
 }
 
-func (w *Worker) ToSpew(depth int) string {
-	children := w.Children.ToSlice()
-	nodeNames := make([]string, 0)
-	for _, v := range children {
-		nodeNames = append(nodeNames, v.Name)
-	}
-	summary := fmt.Sprintf("(%T)(<%p>) [id:%s,count:%d,items:%s]\n", w, w, w.Id(), len(nodeNames), strings.Join(nodeNames, ","))
-	var spewage string
-	cc := &spew.ConfigState{MaxDepth: depth, Indent: "\t"}
-	spewage = cc.Sdump(w)
-	return summary + spewage
+func (w Worker) Spew() string {
+	return SpewableWrapper(nil, w)
 }
 
 type WorkerList struct {
@@ -176,12 +155,6 @@ func (l *WorkerList) ToSlice() []Worker {
 	return workers
 }
 
-func (w *WorkerList) ToSpew(depth int) string {
-	workers := w.ToSlice()
-	summary := fmt.Sprintf("(%T)(<%p>) [workers:%d]\n", w, w, len(workers))
-	spew := ""
-	for _, v := range workers {
-		spew += v.ToSpew(depth)
-	}
-	return summary + spew
+func (w WorkerList) Spew() string {
+	return SpewableWrapper(nil, w)
 }

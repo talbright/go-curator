@@ -2,7 +2,6 @@ package plugin
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/davecgh/go-spew/spew"
 	. "github.com/talbright/go-curator"
 
 	"errors"
@@ -49,7 +48,7 @@ func (s *WorkSupervisor) entry() *log.Entry {
 }
 
 func (s *WorkSupervisor) AddWorker(node *Znode) (err error) {
-	entry := s.entry().WithField("node", spew.Sprintf("%#v", node)).WithField("method", "AddWorker")
+	entry := s.entry().WithField("node", node.Spew()).WithField("method", "AddWorker")
 	entry.Info("adding worker")
 	w := NewWorker(s.client, node.Path)
 	if !s.workers.Add(w) {
@@ -115,7 +114,7 @@ func (s *WorkSupervisor) AddWorker(node *Znode) (err error) {
 }
 
 func (s *WorkSupervisor) RemoveWorker(node *Znode) (err error) {
-	entry := s.entry().WithField("node", spew.Sprintf("%#v", node)).WithField("method", "RemoveWorker")
+	entry := s.entry().WithField("node", node.Spew()).WithField("method", "RemoveWorker")
 	entry.Info("removing worker")
 	_, worker := s.workers.FindById(node.Path)
 	if worker == nil {
@@ -138,7 +137,7 @@ func (s *WorkSupervisor) RemoveWorker(node *Znode) (err error) {
 }
 
 func (s *WorkSupervisor) AddWork(node *Znode) (err error) {
-	entry := s.entry().WithField("node", spew.Sprintf("%#v", node)).WithField("method", "AddWork")
+	entry := s.entry().WithField("node", node.Spew()).WithField("method", "AddWork")
 	entry.Info("add work")
 	if err = s.work.Children.Add(node); err == nil {
 		if err = s.AssignWork(node); err != nil {
@@ -149,7 +148,7 @@ func (s *WorkSupervisor) AddWork(node *Znode) (err error) {
 }
 
 func (s *WorkSupervisor) RemoveWork(node *Znode) (err error) {
-	entry := s.entry().WithField("node", spew.Sprintf("%#v", node)).WithField("method", "RemoveWork")
+	entry := s.entry().WithField("node", node.Spew()).WithField("method", "RemoveWork")
 	entry.Info("remove work")
 	if err = s.work.Children.Remove(node); err == nil {
 		_, worker := s.workers.Find(func(i int, w *Worker) (found bool) {
@@ -225,8 +224,4 @@ func (s *WorkSupervisor) GetWorkers() *WorkerList {
 
 func (s *WorkSupervisor) GetWork() *Work {
 	return s.work
-}
-
-func (s *WorkSupervisor) ToSpew(depth int) string {
-	return s.work.ToSpew(depth) + "\n" + s.workers.ToSpew(depth)
 }
