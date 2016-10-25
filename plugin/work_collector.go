@@ -60,10 +60,13 @@ func (p *WorkCollector) StopWatching() {
 func (p *WorkCollector) Work() (work map[string]*Znode) {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
+	entry := p.curator.LogEntry("work_collector")
+	entry.WithField("work", spew.Sprintf("%#v", p.work)).Debug("internal state of work to be copied")
 	work = make(map[string]*Znode)
 	for k, v := range p.work {
 		work[k] = v.DeepCopy()
 	}
+	entry.WithField("work", spew.Sprintf("%#v", work)).Debug("returning work collected (copy)")
 	return
 }
 
@@ -113,7 +116,7 @@ func (p *WorkCollector) processWorkWatch(event Event) {
 		entry.Debugf("adding %d nodes", len(added))
 		for k, v := range added {
 			fullPath := path.Join(p.workPath, k)
-			p.work[fullPath] = &v
+			p.work[fullPath] = v.DeepCopy()
 		}
 	}
 	if removed, ok = event.Data["removed"].(map[string]Znode); ok {
