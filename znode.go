@@ -55,3 +55,10 @@ func (n Znode) DeepCopy() (zcopy *Znode) {
 	}
 	return
 }
+
+/*
+Spew implements the Spewable interface
+*/
+func (n Znode) Spew() string {
+	return SpewableWrapper(nil, n)
+}
