@@ -184,7 +184,7 @@ func (s *WorkSupervisor) Load() (err error) {
 		w.Children.Clear()
 	}
 	for _, n := range s.work.Children.ToSlice() {
-		s.AddWork(&n)
+		s.AddWork(n.DeepCopy())
 	}
 	return nil
 }
