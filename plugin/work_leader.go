@@ -189,7 +189,7 @@ func (p *WorkLeader) processWorkEvents(event Event) {
 	if added, ok := event.Data["added"].(map[string]Znode); ok {
 		entry.WithField("count", len(added)).Debug("asking supervisor to add work")
 		for _, v := range added {
-			p.supervisor.AddWork(&v)
+			p.supervisor.AddWork(v.DeepCopy())
 		}
 		if len(added) > 0 {
 			data["work_added"] = added
@@ -199,7 +199,7 @@ func (p *WorkLeader) processWorkEvents(event Event) {
 	if removed, ok := event.Data["removed"].(map[string]Znode); ok {
 		entry.WithField("count", len(removed)).Debug("asking supervisor to remove work")
 		for _, v := range removed {
-			if err := p.supervisor.RemoveWork(&v); err != nil {
+			if err := p.supervisor.RemoveWork(v.DeepCopy()); err != nil {
 				entry.WithError(err).WithField("work", spew.Sprintf("%#v", v)).Error("unable to remove work")
 			}
 		}
