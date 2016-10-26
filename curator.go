@@ -132,6 +132,7 @@ func (c *Curator) FireEvent(event Event) {
 
 func (c *Curator) loop() {
 	for event := range c.connChn {
-		c.FireEvent(Event{Type: ConnectionEvent, Source: &event})
+		eventCopy := event
+		c.FireEvent(Event{Type: ConnectionEvent, Source: &eventCopy})
 	}
 }
