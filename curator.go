@@ -2,13 +2,17 @@ package curator
 
 import (
 	"github.com/Sirupsen/logrus"
-	_ "github.com/davecgh/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/talbright/go-zookeeper/zk"
 
 	"fmt"
 	"sync"
 	"time"
 )
+
+func init() {
+	spew.Config.Indent = "\t"
+}
 
 type Settings struct {
 	ZkServers               []string
