@@ -138,6 +138,15 @@ func (p *WorkLeader) loop() {
 
 func (p *WorkLeader) becomeLeader() {
 	entry := p.curator.LogEntry("work_leader")
+
+	if err := p.client.CreatePath(p.workPath, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
+		panic(err)
+	}
+
+	if err := p.client.WaitToExist(p.workPath, MaxWaitToExistTime); err != nil {
+		panic(err)
+	}
+
 	p.setLeader(true)
 	p.supervisor = NewWorkSupervisor(p.client, p.workPath)
 	p.supervisor.Logger = p.curator.Logger()
@@ -148,14 +157,6 @@ func (p *WorkLeader) becomeLeader() {
 		if err := p.supervisor.AddWorker(v); err != nil {
 			entry.WithError(err).WithField("worker", spew.Sprintf("%#v", v)).Error("unable to add worker")
 		}
-	}
-
-	if err := p.client.CreatePath(p.workPath, zk.NoData, zk.WorldACLPermAll); err != nil && err != zk.ErrNodeExists {
-		panic(err)
-	}
-
-	if err := p.client.WaitToExist(p.workPath, MaxWaitToExistTime); err != nil {
-		panic(err)
 	}
 
 	entry.WithField("path", p.workPath).Info("watching for work assignments")
