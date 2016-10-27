@@ -155,7 +155,7 @@ func (p *WorkLeader) becomeLeader() {
 	p.supervisor.Logger = p.curator.Logger()
 	p.supervisor.LogComponent = fmt.Sprintf("%s.%s", p.curator.Settings.LogComponent, "work_supervisor")
 	p.supervisor.Load()
-	entry.WithField("workers", p.workerTracker).Debug("adding workers to supervisor")
+	entry.WithField("workers", p.workerTracker).Debug("adding workers to supervisor xxx")
 	for _, v := range p.workerTracker {
 		if err := p.supervisor.AddWorker(v); err != nil {
 			entry.WithError(err).WithField("worker", spew.Sprintf("%#v", v)).Error("unable to add worker")
