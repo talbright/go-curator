@@ -79,7 +79,7 @@ func (p *WorkLeader) IsLeader() bool {
 }
 
 func (p *WorkLeader) entry() *log.Entry {
-	return p.curator.LogEntry("work_leader").WithField("myfield", "x").WithField("leader", fmt.Sprintf("%t", p.IsLeader()))
+	return p.curator.LogEntry("work_leader").WithField("self", spew.Sprintf("%#v", p)).WithField("leader", fmt.Sprintf("%t", p.IsLeader()))
 }
 
 func (p *WorkLeader) setLeader(leader bool) {
