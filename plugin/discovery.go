@@ -52,7 +52,7 @@ func (p *Discovery) OnUnload() {
 }
 
 func (p *Discovery) StartDiscovery() {
-	p.eventChn = make(chan Event, 10)
+	p.eventChn = make(chan Event, ChannelBufferSize)
 	p.stopChn = make(chan struct{})
 	p.mutex = &sync.RWMutex{}
 	p.members = make(map[string]*MembershipMeta)

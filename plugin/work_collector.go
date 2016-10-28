@@ -39,7 +39,7 @@ func (p *WorkCollector) OnLoad(curator *Curator) {
 	p.client = curator.Client
 	p.curator = curator
 	p.mutex = &sync.RWMutex{}
-	p.eventChn = make(chan Event, 10)
+	p.eventChn = make(chan Event, ChannelBufferSize)
 	p.stopChn = make(chan struct{})
 	p.work = make(map[string]*Znode)
 	p.WatchForWork()

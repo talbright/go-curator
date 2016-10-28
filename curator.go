@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+const ChannelBufferSize = 20
+
 func init() {
 	spew.Config.Indent = "\t"
 }
@@ -129,7 +131,7 @@ func (c *Curator) FireEvent(event Event) {
 	for _, plugin := range c.plugins {
 		if plugin.Accepts(event.Type) {
 			srcCopy := *(event.DeepCopy())
-			go plugin.Notify(srcCopy)
+			plugin.Notify(srcCopy)
 		}
 	}
 }

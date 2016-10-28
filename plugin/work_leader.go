@@ -89,7 +89,7 @@ func (p *WorkLeader) setLeader(leader bool) {
 }
 
 func (p *WorkLeader) startWorkLeader() {
-	p.eventChn = make(chan Event, 10)
+	p.eventChn = make(chan Event, ChannelBufferSize)
 	p.stopChn = make(chan struct{})
 	p.workerTracker = make(map[string]*Znode)
 	p.mutex = &sync.RWMutex{}
@@ -155,7 +155,7 @@ func (p *WorkLeader) becomeLeader() {
 	p.supervisor.Logger = p.curator.Logger()
 	p.supervisor.LogComponent = fmt.Sprintf("%s.%s", p.curator.Settings.LogComponent, "work_supervisor")
 	p.supervisor.Load()
-	entry.WithField("workers", p.workerTracker).Debug("adding workers to supervisor xxx")
+	entry.WithField("workers", p.workerTracker).Debug("adding workers to supervisor")
 	for _, v := range p.workerTracker {
 		if err := p.supervisor.AddWorker(v); err != nil {
 			entry.WithError(err).WithField("worker", spew.Sprintf("%#v", v)).Error("unable to add worker")
