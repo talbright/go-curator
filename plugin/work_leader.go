@@ -129,7 +129,10 @@ func (p *WorkLeader) loop() {
 				p.removeWorker(event.Data["path"].(string))
 			}
 		case event := <-workWatchChn:
-			p.processWorkEvents(event)
+			// Don't processs this event: ChildrenWatchLoadedEvent
+			if event.Type != ChildrenWatchLoadedEvent {
+				p.processWorkEvents(event)
+			}
 		case <-p.stopChn:
 			return
 		}
