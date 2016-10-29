@@ -66,9 +66,6 @@ func (s *WorkSupervisor) AddWorker(node *Znode) (err error) {
 	if workerCount > 1 && totalWork > 0 {
 		workPerWorker := int(totalWork / workerCount)
 		workRemainder := totalWork % workerCount
-		if workRemainder != 0 {
-			workPerWorker = workPerWorker - int(workRemainder/(workerCount-1))
-		}
 		entry.WithFields(log.Fields{
 			"workerPerWorker": workPerWorker,
 			"remainder":       workRemainder,
