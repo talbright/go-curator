@@ -64,12 +64,12 @@ func (p *Discovery) StopDiscovery() {
 	p.clearMembers()
 }
 
-func (p *Discovery) Members() []Znode {
+func (p *Discovery) Members() map[string]*Znode {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
-	members := make([]Znode, 0)
-	for _, v := range p.members {
-		members = append(members, *v.znode)
+	members := make(map[string]*Znode, 0)
+	for k, v := range p.members {
+		members[k] = v.znode
 	}
 	return members
 }

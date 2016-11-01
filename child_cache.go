@@ -39,7 +39,7 @@ Some notes:
 */
 type ChildCache struct {
 	CreateFlags   int32
-	parentPath    string
+	Path          string
 	client        *Client
 	nodeCacheLock *sync.Mutex
 	nodeCache     map[string]*Znode
@@ -47,7 +47,7 @@ type ChildCache struct {
 
 func NewChildCache(client *Client, path string) *ChildCache {
 	return &ChildCache{
-		parentPath:    path,
+		Path:          path,
 		client:        client,
 		nodeCache:     make(map[string]*Znode, 0),
 		nodeCacheLock: &sync.Mutex{},
@@ -118,9 +118,9 @@ func (l *ChildCache) LoadCache() (err error) {
 	defer l.nodeCacheLock.Unlock()
 
 	l.nodeCache = make(map[string]*Znode, 0)
-	if children, _, err := l.client.Children(l.parentPath); err == nil {
+	if children, _, err := l.client.Children(l.Path); err == nil {
 		for _, v := range children {
-			unitPath := fmt.Sprintf("%s/%s", l.parentPath, v)
+			unitPath := fmt.Sprintf("%s/%s", l.Path, v)
 			if data, stat, err := l.client.Get(unitPath); err == nil {
 				l.nodeCache[v] = &Znode{Name: v, Data: data, Stat: stat, Path: unitPath}
 			} else {
@@ -142,7 +142,7 @@ func (l *ChildCache) Add(nodes ...*Znode) (err error) {
 	defer l.nodeCacheLock.Unlock()
 	for _, node := range nodes {
 		if _, exists := l.nodeCache[node.Name]; !exists {
-			nodePath := fmt.Sprintf("%s/%s", l.parentPath, node.Name)
+			nodePath := fmt.Sprintf("%s/%s", l.Path, node.Name)
 			node.Path = nodePath
 			exists, stat, err := l.client.Exists(nodePath)
 			if err != nil {
@@ -175,7 +175,7 @@ func (l *ChildCache) Remove(nodes ...*Znode) (err error) {
 	defer l.nodeCacheLock.Unlock()
 	for _, node := range nodes {
 		if _, exists := l.nodeCache[node.Name]; exists {
-			nodePath := fmt.Sprintf("%s/%s", l.parentPath, node.Name)
+			nodePath := fmt.Sprintf("%s/%s", l.Path, node.Name)
 			if err := l.client.Delete(nodePath, -1); err == nil || err == zk.ErrNoNode {
 				delete(l.nodeCache, node.Name)
 			} else {
