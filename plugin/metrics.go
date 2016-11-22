@@ -21,7 +21,7 @@ func (p *Metrics) Accepts(eventType EventType) bool {
 }
 
 func (p *Metrics) Notify(event Event) {
-	p.eventCounter().Inc(1)
+	p.eventMeter().Mark(1)
 	switch event.Type {
 	case ConnectionEvent:
 		p.metricsForConnection(event)
@@ -53,7 +53,6 @@ func (p *Metrics) OnLoad(curator *Curator) {
 		p.Registry = metrics.NewPrefixedRegistry("curator.")
 	}
 	p.client = curator.Client
-	p.initMetrics()
 }
 
 func (p *Metrics) OnUnload() {}
@@ -124,25 +123,13 @@ func (p *Metrics) metricsForConnection(event Event) {
 			p.sessionGauge().Update(1)
 		case zk.StateConnecting:
 			p.sessionGauge().Update(0)
-			p.connectingCounter().Inc(1)
+			p.connectingMeter().Mark(1)
 		case zk.StateUnknown:
 			break
 		default:
 			p.sessionGauge().Update(0)
 		}
 	}
-}
-
-func (p *Metrics) initMetrics() {
-	p.workLeaderActiveGauge().Update(0)
-	p.workLeaderWorkerCount().Clear()
-	p.workLeaderWorkCount().Clear()
-	p.discoveryCounter().Clear()
-	p.eventCounter().Clear()
-	p.registeredGauge().Update(0)
-	p.leaderGauge().Update(0)
-	p.sessionGauge().Update(0)
-	p.connectingCounter().Clear()
 }
 
 func (p *Metrics) workLeaderActiveGauge() metrics.Gauge {
@@ -161,8 +148,8 @@ func (p *Metrics) discoveryCounter() metrics.Counter {
 	return metrics.GetOrRegisterCounter("discovery.discovered", p.Registry)
 }
 
-func (p *Metrics) eventCounter() metrics.Counter {
-	return metrics.GetOrRegisterCounter("events", p.Registry)
+func (p *Metrics) eventMeter() metrics.Meter {
+	return metrics.GetOrRegisterMeter("events", p.Registry)
 }
 
 func (p *Metrics) registeredGauge() metrics.Gauge {
@@ -177,6 +164,6 @@ func (p *Metrics) sessionGauge() metrics.Gauge {
 	return metrics.GetOrRegisterGauge("connection.session", p.Registry)
 }
 
-func (p *Metrics) connectingCounter() metrics.Counter {
-	return metrics.GetOrRegisterCounter("connection.attempts", p.Registry)
+func (p *Metrics) connectingMeter() metrics.Meter {
+	return metrics.GetOrRegisterMeter("connection.attempts", p.Registry)
 }
