@@ -129,9 +129,9 @@ func (p *WorkCollector) processWorkWatch(event Event) {
 
 	var eventType EventType
 	if event.Type == ChildrenWatchLoadedEvent {
-		eventType = WorkerEventLoaded
+		eventType = WorkCollectorEventLoaded
 	} else {
-		eventType = WorkerEventChangeset
+		eventType = WorkCollectorEventChangeset
 	}
 
 	data := map[string]interface{}{

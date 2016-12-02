@@ -45,6 +45,10 @@ func (p *Metrics) Notify(event Event) {
 		fallthrough
 	case WorkLeaderInactive:
 		p.metricsForWorkLeader(event)
+	case WorkCollectorEventLoaded:
+		fallthrough
+	case WorkCollectorEventChangeset:
+		p.metricsForWorkCollector(event)
 	}
 }
 
@@ -56,6 +60,21 @@ func (p *Metrics) OnLoad(curator *Curator) {
 }
 
 func (p *Metrics) OnUnload() {}
+
+func (p *Metrics) metricsForWorkCollector(event Event) {
+	if event.Data != nil {
+		if _, ok := event.Data["added"]; ok {
+			if val, ok := event.Data["added"].(map[string]Znode); ok {
+				p.workCollectorWorkCount().Inc(int64(len(val)))
+			}
+		}
+		if _, ok := event.Data["removed"]; ok {
+			if val, ok := event.Data["removed"].(map[string]Znode); ok {
+				p.workCollectorWorkCount().Dec(int64(len(val)))
+			}
+		}
+	}
+}
 
 func (p *Metrics) metricsForWorkLeader(event Event) {
 	switch event.Type {
@@ -130,6 +149,10 @@ func (p *Metrics) metricsForConnection(event Event) {
 			p.sessionGauge().Update(0)
 		}
 	}
+}
+
+func (p *Metrics) workCollectorWorkCount() metrics.Counter {
+	return metrics.GetOrRegisterCounter("work_collector.work", p.Registry)
 }
 
 func (p *Metrics) workLeaderActiveGauge() metrics.Gauge {

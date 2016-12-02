@@ -21,30 +21,30 @@ const (
 	MemberEventUnregistered
 	DiscoveryEventActive
 	DiscoveryEventInactive
-	WorkerEventChangeset
-	WorkerEventLoaded
+	WorkCollectorEventChangeset
+	WorkCollectorEventLoaded
 	WorkLeaderChangeset
 	WorkLeaderActive
 	WorkLeaderInactive
 )
 
 var eventTypeToName = map[EventType]string{
-	AnyEvent:                  "AnyEvent",
-	ConnectionEvent:           "ConnectionEvent",
-	ChildrenWatchLoadedEvent:  "ChildrenWatchLoadedEvent",
-	ChildrenWatchChangedEvent: "ChildrenWatchChangedEvent",
-	LeaderEventElected:        "LeaderEventElected",
-	LeaderEventCandidate:      "LeaderEventCandidate",
-	LeaderEventResigned:       "LeaderEventResigned",
-	MemberEventRegistered:     "MemberEventRegistered",
-	MemberEventUnregistered:   "MemberEventUnregistered",
-	DiscoveryEventActive:      "DiscoveryEventActive",
-	DiscoveryEventInactive:    "DiscoveryEventInactive",
-	WorkerEventChangeset:      "WorkerEventChangeset",
-	WorkerEventLoaded:         "WorkerEventLoaded",
-	WorkLeaderChangeset:       "WorkLeaderChangeset",
-	WorkLeaderActive:          "WorkLeaderActive",
-	WorkLeaderInactive:        "WorkLeaderInactive",
+	AnyEvent:                    "AnyEvent",
+	ConnectionEvent:             "ConnectionEvent",
+	ChildrenWatchLoadedEvent:    "ChildrenWatchLoadedEvent",
+	ChildrenWatchChangedEvent:   "ChildrenWatchChangedEvent",
+	LeaderEventElected:          "LeaderEventElected",
+	LeaderEventCandidate:        "LeaderEventCandidate",
+	LeaderEventResigned:         "LeaderEventResigned",
+	MemberEventRegistered:       "MemberEventRegistered",
+	MemberEventUnregistered:     "MemberEventUnregistered",
+	DiscoveryEventActive:        "DiscoveryEventActive",
+	DiscoveryEventInactive:      "DiscoveryEventInactive",
+	WorkCollectorEventChangeset: "WorkCollectorEventChangeset",
+	WorkCollectorEventLoaded:    "WorkCollectorEventLoaded",
+	WorkLeaderChangeset:         "WorkLeaderChangeset",
+	WorkLeaderActive:            "WorkLeaderActive",
+	WorkLeaderInactive:          "WorkLeaderInactive",
 }
 
 func (e EventType) String() (name string) {
