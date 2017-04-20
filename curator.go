@@ -2,13 +2,19 @@ package curator
 
 import (
 	"github.com/Sirupsen/logrus"
-	_ "github.com/davecgh/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/talbright/go-zookeeper/zk"
 
 	"fmt"
 	"sync"
 	"time"
 )
+
+const ChannelBufferSize = 20
+
+func init() {
+	spew.Config.Indent = "\t"
+}
 
 type Settings struct {
 	ZkServers               []string
@@ -125,7 +131,7 @@ func (c *Curator) FireEvent(event Event) {
 	for _, plugin := range c.plugins {
 		if plugin.Accepts(event.Type) {
 			srcCopy := *(event.DeepCopy())
-			go plugin.Notify(srcCopy)
+			plugin.Notify(srcCopy)
 		}
 	}
 }

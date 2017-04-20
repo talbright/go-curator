@@ -47,7 +47,7 @@ func (p *Leader) OnUnload() {
 }
 
 func (p *Leader) RunForElection() {
-	p.eventChn = make(chan Event, 10)
+	p.eventChn = make(chan Event, ChannelBufferSize)
 	p.stopChn = make(chan struct{})
 	p.mutex = &sync.RWMutex{}
 	go p.loop()

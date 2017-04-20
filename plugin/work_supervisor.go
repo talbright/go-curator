@@ -52,6 +52,7 @@ func (s *WorkSupervisor) AddWorker(node *Znode) (err error) {
 	entry.Info("adding worker")
 	w := NewWorker(s.client, node.Path)
 	if !s.workers.Add(w) {
+		entry.Error("worker already exists")
 		return ErrWorkerAlreadyExists
 	}
 	w.Children.LoadCache()
